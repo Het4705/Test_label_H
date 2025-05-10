@@ -53,7 +53,7 @@ const ProductFilters = () => {
   ];
 
   return (
-    <div className="space-y-6 sticky top-20">
+    <div className="space-y-6 sticky top-20 h-[90%] sm:h-auto flex flex-col overflow-auto border-2 p-2 rounded-md">
       <div>
         <h3 className="text-lg font-medium mb-3">Price Range</h3>
         <div className="grid grid-cols-2 gap-2">

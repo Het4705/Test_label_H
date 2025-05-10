@@ -40,6 +40,7 @@ import {
 } from "firebase/firestore";
 import { Product } from "@/types";
 import Footer from "@/components/Footer";
+import { marked } from "marked";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -90,6 +91,7 @@ const ProductDetail = () => {
       category: string,
       collectionName: string
     ) => {
+      debugger
       try {
         const similarProductsQuery = await getDocs(
           query(
@@ -247,11 +249,11 @@ const ProductDetail = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
             <div className="space-y-4">
-              <div className="aspect-square bg-muted/30 rounded-lg overflow-hidden">
+              <div className="h-[60vh] sm:h-[60vh] bg-muted/30 rounded-lg overflow-hidden">
                 <img
                   src={productImages[currentImageIndex]}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full"
                 />
               </div>
 
@@ -269,7 +271,7 @@ const ProductDetail = () => {
                     <img
                       src={image}
                       alt={`${product.name} view ${index + 1}`}
-                      className="w-full h-full object-cover"
+                      className="w-full h-full "
                     />
                   </button>
                 ))}
@@ -325,8 +327,10 @@ const ProductDetail = () => {
                 )}
               </div>
 
-              <p className="text-muted-foreground mb-6">
-                {product.description}
+              <p className="text-muted-foreground mb-6"  dangerouslySetInnerHTML={{
+                    __html: marked(product.description)
+                  }}>
+                
               </p>
 
               <div className="space-y-4 mb-8">
@@ -484,7 +488,7 @@ const ProductDetail = () => {
                     Description
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    {product.description} Our designs are crafted with utmost
+                    Our designs are crafted with utmost
                     attention to detail and quality materials to ensure that
                     each piece is not just beautiful, but also durable and
                     comfortable to wear.
@@ -609,7 +613,7 @@ const ProductDetail = () => {
             </TabsContent>
           </Tabs>
 
-          <div>
+          {/* <div>
             <h2 className="text-2xl font-playfair font-bold mb-6">
               You May Also Like
             </h2>
@@ -658,7 +662,7 @@ const ProductDetail = () => {
                     </div>
                   ))}
             </div>
-          </div>
+          </div> */}
         </div>
       </main>
       <Footer isDarkMode={isDarkMode} />

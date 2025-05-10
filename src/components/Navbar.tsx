@@ -23,7 +23,7 @@ const Navbar = ({ toggleTheme, isDarkMode }: { toggleTheme: () => void; isDarkMo
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
             <Link to="/" className="flex items-center">
-              <span className="font-playfair text-xl md:text-2xl font-bold text-foreground">The Label H</span>
+              <span className="font-playfair text-lg font-bold text-foreground sm:text-2xl">The Label H</span>
             </Link>
           </div>
 
@@ -31,18 +31,18 @@ const Navbar = ({ toggleTheme, isDarkMode }: { toggleTheme: () => void; isDarkMo
             <NavLinks />
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center  ml-2  sm:mr-0 sm:scale-100  ">
             <Button variant="ghost" size="icon" onClick={toggleTheme} aria-label="Toggle theme">
-              {isDarkMode ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
+              {isDarkMode ? <Sun /> : <Moon />}
             </Button>
             <Link to="/favorites">
               <Button variant="ghost" size="icon" aria-label="Favorites">
-                <Heart className="h-5 w-5" />
+                <Heart />
               </Button>
             </Link>
             <Link to="/cart">
               <Button variant="ghost" size="icon" aria-label="Shopping cart">
-                <ShoppingCart className="h-5 w-5" />
+                <ShoppingCart />
               </Button>
             </Link>
             <UserAvatar />

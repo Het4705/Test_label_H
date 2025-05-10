@@ -196,7 +196,7 @@ const AddressDialog = ({ isOpen, onClose, onSelectAddress }: AddressDialogProps)
                 <p className="text-muted-foreground">No addresses yet</p>
               </div>
             ) : (
-              <div className="space-y-2 max-h-60 overflow-y-auto">
+              <div className="space-y-2 max-h-60 overflow-y-auto ">
                 {addresses.map((address) => (
                   <div 
                     key={address.id}
@@ -233,16 +233,18 @@ const AddressDialog = ({ isOpen, onClose, onSelectAddress }: AddressDialogProps)
               </div>
             )}
 
-            <div className="flex justify-between pt-4">
+            <div className="flex justify-between pt-4 gap-2 flex-wrap">
               <Button 
                 variant="outline" 
                 onClick={() => setShowAddressForm(true)}
+                className='w-full'
               >
                 Add New Address
               </Button>
               <Button 
                 onClick={handleSubmit}
                 disabled={!selectedAddressId || isLoading}
+                className='w-full'
               >
                 Use Selected Address
               </Button>
@@ -250,7 +252,7 @@ const AddressDialog = ({ isOpen, onClose, onSelectAddress }: AddressDialogProps)
           </div>
         ) : (
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleAddAddress)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(handleAddAddress)} className="space-y-4 h-[80vh] overflow-scroll border-2 p-3 rounded-md">
               <FormField
                 control={form.control}
                 name="name"
