@@ -116,8 +116,9 @@ const Cart = () => {
                         </div>
                         <div className="flex-grow flex flex-col justify-between">
                           <div>
-                            <h3 className="font-playfair text-lg font-semibold">{item.name}</h3>
+                            <h3 className="font-playfair text-lg font-semibold">{item.name}  [ <span className="font-semibold text-accent">{item.size}</span> ] </h3>
                             <p className="text-accent font-bold">₹{item.price}</p>
+                            
                           </div>
                           <div className="flex justify-between items-center mt-4">
                             <div className="flex items-center border border-border rounded-md overflow-hidden">
@@ -139,7 +140,7 @@ const Cart = () => {
                             </div>
                             <button 
                               className="text-muted-foreground hover:text-destructive transition-colors"
-                              onClick={() => removeFromCart(item.id)}
+                              onClick={() => removeFromCart(item.id,item.size)}
                               aria-label="Remove item"
                             >
                               <Trash2 className="h-5 w-5" />

@@ -15,6 +15,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { FaGoogle } from "react-icons/fa";
+import { getAuth, sendEmailVerification } from "firebase/auth";
+import { toast } from "@/components/ui/use-toast";
 
 const formSchema = z.object({
   displayName: z.string().min(2, { message: "Name must be at least 2 characters" }),
@@ -50,12 +52,23 @@ const Register = () => {
   const handleSubmit = async (data: FormData) => {
     setIsLoading(true);
     try {
-      // Pass additional user data to register function
-      await register(data.email, data.password, {
+      // Register the user
+      const userCredential = await register(data.email, data.password, {
         displayName: data.displayName,
         phoneNumber: data.phoneNumber || undefined,
       });
-      navigate("/");
+
+      // Send verification email if using Firebase Auth
+      const auth = getAuth();
+      if (auth.currentUser) {
+        await sendEmailVerification(auth.currentUser);
+        toast({
+          title: "Verification Email Sent",
+          description: "Please go to your mailbox and verify your email to complete registration.",
+        });
+      }
+
+      navigate("/login"); // Redirect to login after registration
     } catch (error) {
       console.error(error);
     } finally {

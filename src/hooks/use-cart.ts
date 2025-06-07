@@ -55,13 +55,13 @@ export const useCart = () => {
   };
 
   // Remove item from cart
-  const removeFromCart = async (productId: string) => {
+  const removeFromCart = async (productId: string,size:string) => {
     if (!currentUser) {
       return false;
     }
 
     try {
-      const updatedCart = await removeFromCartFirestore(currentUser.uid, productId);
+      const updatedCart = await removeFromCartFirestore(currentUser.uid, productId,size);
       setCartItems(updatedCart);
       return true;
     } catch (error) {

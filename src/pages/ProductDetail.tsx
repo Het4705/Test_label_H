@@ -13,6 +13,7 @@ import {
   ChevronDown,
   Info,
   Loader2,
+  Copy,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -208,7 +209,6 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
-    debugger;
     if (product.size && product.size.length > 0 && !selectedSize) {
       toast({
         title: "Select Size",
@@ -478,16 +478,16 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex flex-wrap gap-4 mb-8">
-                <Button
-                  size="lg"
-                  className="flex-1 min-w-[150px]"
-                  onClick={handleAddToCart}
-                  disabled={
-                    product.stock < 1 || ( product.size && product.size.length > 0 && !selectedSize )
-                  }
-                >
-                  <ShoppingBag className="mr-2 h-5 w-5" /> Add to Cart
-                </Button>
+                      <Button
+                        size="lg"
+                        className="flex-1 min-w-[150px]"
+                        onClick={handleAddToCart}
+                        disabled={
+                          product.stock < 1                         
+                        }
+                      >
+                        <ShoppingBag className="mr-2 h-5 w-5" /> Add to Cart
+                      </Button>
                 {/* <Button
                   size="lg"
                   variant="secondary"
@@ -526,17 +526,24 @@ const ProductDetail = () => {
                         variant="outline"
                         size="icon"
                         className="h-12 w-12"
-                        onClick={handleShare}
+                        onClick={() => {
+                          navigator.clipboard.writeText(window.location.href);
+                          toast({
+                            title: "Link copied!",
+                            description: "Product link copied to clipboard.",
+                          });
+                        }}
                       >
-                        <Share2 className="h-5 w-5" />
+                        <Copy className="h-5 w-5" />
                       </Button>
                     </TooltipTrigger>
                     <TooltipContent>
-                      <p>Share Product</p>
+                      <p>Copy Product Link</p>
                     </TooltipContent>
                   </Tooltip>
                 </TooltipProvider>
               </div>
+             
 
               <div className="bg-muted/30 rounded-lg p-4 flex items-start space-x-3">
                 <Info className="h-5 w-5 text-accent mt-0.5" />
@@ -770,7 +777,7 @@ const ProductDetail = () => {
         >
           <div
             className="bg-white border rounded shadow-lg p-3 min-w-[180px]"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <div className="flex flex-col gap-2">
               <button

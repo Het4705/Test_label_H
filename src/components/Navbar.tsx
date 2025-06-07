@@ -1,12 +1,22 @@
-
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Menu, ShoppingCart, Heart, Sun, Moon, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import UserAvatar from './UserAvatar';
+import { useCart } from '@/hooks/use-cart'; // Adjust path as needed
 
 const Navbar = ({ toggleTheme, isDarkMode }: { toggleTheme: () => void; isDarkMode: boolean }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const { cartItems } = useCart(); // cartItems is an array of cart items
+
+  // Local state for cart count
+  const [cartCount, setCartCount] = useState(0);
+
+  // Update cartCount whenever cartItems changes
+  useEffect(() => {
+    const count = cartItems.length;
+    setCartCount(count);
+  }, [cartItems]);
 
   return (
     <nav className="fixed w-full top-0 z-50 bg-background/80 backdrop-blur-md border-b border-border/40">
@@ -40,11 +50,18 @@ const Navbar = ({ toggleTheme, isDarkMode }: { toggleTheme: () => void; isDarkMo
                 <Heart />
               </Button>
             </Link>
-            <Link to="/cart">
-              <Button variant="ghost" size="icon" aria-label="Shopping cart">
-                <ShoppingCart />
-              </Button>
-            </Link>
+            <div className="relative flex flex-col items-center">
+              {cartCount > 0 && (
+                <span className="absolute -top-2 left-1/2 -translate-x-1/2 bg-accent text-xs text-accent-foreground rounded-full px-2 py-0.5 shadow">
+                  {cartCount}
+                </span>
+              )}
+              <Link to="/cart">
+                <Button variant="ghost" size="icon" aria-label="Shopping cart">
+                  <ShoppingCart />
+                </Button>
+              </Link>
+            </div>
             <UserAvatar />
           </div>
         </div>

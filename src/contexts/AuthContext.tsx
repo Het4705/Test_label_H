@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { 
   User as FirebaseUser, 
@@ -6,7 +5,9 @@ import {
   signInWithEmailAndPassword,
   signInWithPopup,
   signOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  getAuth,
+  sendEmailVerification
 } from "firebase/auth";
 import { auth, googleProvider } from "@/lib/firebase";
 import { useToast } from "@/hooks/use-toast";
@@ -50,11 +51,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       // Create user profile in Firestore with additional info
       await createUserProfile(userCredential.user.uid, email, additionalInfo);
-      
-      toast({
-        title: "Registration successful",
-        description: "Your account has been created successfully.",
-      });
+
+      // Send email verification
+      if (userCredential.user) {
+        await sendEmailVerification(userCredential.user);
+        toast({
+          title: "Verification Email Sent",
+          description: "Please go to your mailbox and verify your email to complete registration.",
+        });
+      } else {
+        toast({
+          title: "Registration successful",
+          description: "Your account has been created successfully.",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Registration failed",

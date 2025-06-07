@@ -1,5 +1,4 @@
-
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import ProductCard from '@/components/ProductCard';
@@ -27,11 +26,14 @@ const Favorites = () => {
         setLoading(false);
       }
     };
-
     fetchProducts();
-  }, []);
+  }, [favoriteIds]);
 
-  const favoriteProducts = getFavoriteProducts(allProducts);
+  // Dynamically update favoriteProducts when favoriteIds or allProducts change
+  const favoriteProducts = useMemo(
+    () => getFavoriteProducts(allProducts),
+    [allProducts, favoriteIds]
+  );
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
