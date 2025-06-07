@@ -119,17 +119,20 @@ export const updateUserProfile = async (userId: string, data: Partial<User>) => 
 // Product Operations
 export const getProducts = async () => {
   try {
+    console.log("3 Fetching products:");
     const productsQuery = query(
       collection(db, PRODUCTS),
       orderBy("name")
     );
     
     const productsSnap = await getDocs(productsQuery);
+    console.log("1 Fetched products:", productsSnap);
     const products: Product[] = [];
     
     productsSnap.forEach(doc => {
       products.push({ id: doc.id, ...doc.data() } as Product);
     });
+    console.log("2 Fetched products:", products);
     
     return products;
   } catch (error: any) {
