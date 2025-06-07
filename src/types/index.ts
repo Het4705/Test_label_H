@@ -40,10 +40,10 @@ export type Product = {
     offerPercentage: number;
     validDate: Timestamp;
   };
-  sizes: {
-    size:string,
+  size: {
+    length:string,
     available:boolean
-  };
+  }[];
   reviews?: Review[];
 };
 
@@ -93,6 +93,7 @@ export type OrderItem = {
   name: string;
   price: number;
   quantity: number;
+  size: string;
 };
 
 export type Review = {
@@ -113,6 +114,7 @@ export type CartItem = {
   price: number;
   originalPrice?: number;
   image: string;
+  size: string;
   quantity: number;
 };
 

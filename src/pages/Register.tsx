@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
@@ -77,8 +76,8 @@ const Register = () => {
   };
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-12">
-      <div className="w-full max-w-md space-y-6 rounded-lg border border-border/40 bg-background p-6 sm:p-8 shadow-lg">
+    <div className="flex min-h-screen items-center justify-center bg-background px-2 py-6 sm:px-4 sm:py-12">
+      <div className="w-full max-w-md space-y-6 rounded-2xl border border-border/40 bg-background p-4 sm:p-6 md:p-8 shadow-xl">
         <div className="text-center">
           <h1 className="font-playfair text-2xl font-bold text-foreground">Create an account</h1>
           <p className="mt-2 text-sm text-muted-foreground">

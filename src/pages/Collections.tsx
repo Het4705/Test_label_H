@@ -13,6 +13,16 @@ const Collections = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const navigate = useNavigate();
 
+  // Updated state to use object instead of array
+  const [moreInfo, setMoreInfo] = useState<{ [id: string]: boolean }>({});
+
+  const setShowMore = (id: string) => {
+    setMoreInfo((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
+  };
+
   const {
     data: collections,
     isLoading,
@@ -121,9 +131,22 @@ const Collections = () => {
 
                 {/* Description and Button */}
                 <div className="p-6 flex flex-col flex-grow">
-                  <p className="text-muted-foreground mb-4 flex-grow"  dangerouslySetInnerHTML={{
-                    __html: marked(collection.description),
-                  }}>
+                  <p className="text-muted-foreground mb-4 flex-grow">
+                    <span
+                      dangerouslySetInnerHTML={{
+                        __html: marked.parse(
+                          moreInfo[collection.id]
+                            ? collection.description
+                            : collection.description.slice(0, 100)
+                        ),
+                      }}
+                    />
+                    <button
+                      onClick={() => setShowMore(collection.id)}
+                      className="ml-2 text-accent underline"
+                    >
+                      show {moreInfo[collection.id] ? "less" : "more"}
+                    </button>
                   </p>
                   <Button
                     variant="outline"

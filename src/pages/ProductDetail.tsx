@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import {
@@ -40,7 +40,8 @@ import {
 } from "firebase/firestore";
 import { Product } from "@/types";
 import Footer from "@/components/Footer";
-import { marked } from "marked";
+import { useCart } from "@/hooks/use-cart";
+import { useAuth } from "@/contexts/AuthContext";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -52,7 +53,12 @@ const ProductDetail = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
+  const [selectedSize, setSelectedSize] = useState<string | null>(null);
+  const [showShareOptions, setShowShareOptions] = useState(false);
+  const shareRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
+  const { addToCart } = useCart();
+  const { currentUser } = useAuth();
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -91,7 +97,6 @@ const ProductDetail = () => {
       category: string,
       collectionName: string
     ) => {
-      debugger
       try {
         const similarProductsQuery = await getDocs(
           query(
@@ -203,9 +208,39 @@ const ProductDetail = () => {
   };
 
   const handleAddToCart = () => {
+    debugger;
+    if (product.size && product.size.length > 0 && !selectedSize) {
+      toast({
+        title: "Select Size",
+        description: "Please select a size before adding to cart.",
+        variant: "destructive",
+      });
+      return;
+    }
+    if (!currentUser) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to add items to your cart",
+        variant: "destructive",
+      });
+      return;
+    }
+    // Check available quantity (assume product.quantity is available)
+    const availableQty = product.stock;
+    if (quantity > availableQty) {
+      toast({
+        title: "Insufficient Stock",
+        description: `Only ${availableQty} item(s) available in stock.`,
+        variant: "destructive",
+      });
+      return;
+    }
+    addToCart(product, quantity, selectedSize);
     toast({
       title: "Added to Cart",
-      description: `${quantity} × ${product.name} added to your cart`,
+      description: `${quantity} × ${product.name}${
+        selectedSize ? ` (${selectedSize})` : ""
+      } added to your cart`,
     });
   };
 
@@ -224,6 +259,32 @@ const ProductDetail = () => {
         ? `${product.name} removed from your wishlist`
         : `${product.name} added to your wishlist`,
     });
+  };
+
+  const handleShare = async () => {
+    const shareData = {
+      title: product?.name,
+      text: product?.description,
+      url: window.location.href,
+    };
+    if (navigator.share) {
+      try {
+        await navigator.share(shareData);
+      } catch (err) {
+        // User cancelled or error
+      }
+    } else {
+      setShowShareOptions(true);
+    }
+  };
+
+  const handleCopyLink = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast({
+      title: "Link copied!",
+      description: "Product link copied to clipboard.",
+    });
+    setShowShareOptions(false);
   };
 
   return (
@@ -249,11 +310,11 @@ const ProductDetail = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
             <div className="space-y-4">
-              <div className="h-[60vh] sm:h-[60vh] bg-muted/30 rounded-lg overflow-hidden">
+              <div className="aspect-square bg-muted/30 rounded-lg overflow-hidden">
                 <img
                   src={productImages[currentImageIndex]}
                   alt={product.name}
-                  className="w-full h-full"
+                  className="w-full h-full object-cover"
                 />
               </div>
 
@@ -271,7 +332,7 @@ const ProductDetail = () => {
                     <img
                       src={image}
                       alt={`${product.name} view ${index + 1}`}
-                      className="w-full h-full "
+                      className="w-full h-full object-cover"
                     />
                   </button>
                 ))}
@@ -327,10 +388,8 @@ const ProductDetail = () => {
                 )}
               </div>
 
-              <p className="text-muted-foreground mb-6"  dangerouslySetInnerHTML={{
-                    __html: marked(product.description)
-                  }}>
-                
+              <p className="text-muted-foreground mb-6">
+                {product.description}
               </p>
 
               <div className="space-y-4 mb-8">
@@ -346,20 +405,51 @@ const ProductDetail = () => {
                   </span>
                   <span>{product.material}</span>
                 </div>
-                {product.size && (
+                {product.size && product.size.length > 0 && (
                   <div className="flex items-center">
                     <span className="w-32 text-sm text-muted-foreground">
                       Size:
                     </span>
-                    <span>{product.size}</span>
+                    <div className="flex gap-2">
+                      {product.size.map((size) => (
+                        <button
+                          key={size.length}
+                          type="button"
+                          disabled={!size.available}
+                          onClick={() =>
+                            size.available && setSelectedSize(size.length)
+                          }
+                          className={`px-3 py-1 rounded border text-sm
+                            ${
+                              !size.available
+                                ? "bg-muted text-muted-foreground cursor-not-allowed opacity-50"
+                                : ""
+                            }
+                            ${
+                              selectedSize === size.length
+                                ? "border-accent bg-accent/10"
+                                : "border-border bg-background"
+                            }
+                          `}
+                        >
+                          {size.length}
+                        </button>
+                      ))}
+                    </div>
                   </div>
                 )}
                 <div className="flex items-center">
                   <span className="w-32 text-sm text-muted-foreground">
                     Availability:
                   </span>
-                  <span className="text-green-600 dark:text-green-400 font-medium">
-                    In Stock
+                  <span
+                    className={
+                      product.stock > 0
+                        ? "text-green-600 dark:text-green-400 font-medium"
+                        : "text-red-600 dark:text-red-400 font-medium"
+                    }
+                  >
+                    {product.stock > 0 ? "In Stock" : "Out of Stock"}
                   </span>
                 </div>
               </div>
@@ -392,17 +482,20 @@ const ProductDetail = () => {
                   size="lg"
                   className="flex-1 min-w-[150px]"
                   onClick={handleAddToCart}
+                  disabled={
+                    product.stock < 1 || ( product.size && product.size.length > 0 && !selectedSize )
+                  }
                 >
                   <ShoppingBag className="mr-2 h-5 w-5" /> Add to Cart
                 </Button>
-                <Button
+                {/* <Button
                   size="lg"
                   variant="secondary"
                   className="flex-1 min-w-[150px]"
                   onClick={handleBuyNow}
                 >
                   Buy Now
-                </Button>
+                </Button> */}
                 <TooltipProvider>
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -433,6 +526,7 @@ const ProductDetail = () => {
                         variant="outline"
                         size="icon"
                         className="h-12 w-12"
+                        onClick={handleShare}
                       >
                         <Share2 className="h-5 w-5" />
                       </Button>
@@ -488,7 +582,7 @@ const ProductDetail = () => {
                     Description
                   </h3>
                   <p className="text-muted-foreground mb-4">
-                    Our designs are crafted with utmost
+                    {product.description} Our designs are crafted with utmost
                     attention to detail and quality materials to ensure that
                     each piece is not just beautiful, but also durable and
                     comfortable to wear.
@@ -613,16 +707,17 @@ const ProductDetail = () => {
             </TabsContent>
           </Tabs>
 
-          {/* <div>
-            <h2 className="text-2xl font-playfair font-bold mb-6">
-              You May Also Like
+          {/* Similar Products Section */}
+          <div className="mt-16">
+            <h2 className="text-2xl font-playfair font-semibold mb-6">
+              Similar Products
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              {similarProducts.length > 0
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+              {similarProducts && similarProducts.length > 0
                 ? similarProducts.map((relatedProduct) => (
                     <Link
-                      key={relatedProduct.id}
                       to={`/product/${relatedProduct.id}`}
+                      key={relatedProduct.id}
                       className="group"
                     >
                       <div className="rounded-lg overflow-hidden bg-muted/30">
@@ -632,7 +727,7 @@ const ProductDetail = () => {
                               relatedProduct.images &&
                               relatedProduct.images.length > 0
                                 ? relatedProduct.images[0]
-                                : ""
+                                : "https://via.placeholder.com/300"
                             }
                             alt={relatedProduct.name}
                             className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
@@ -662,10 +757,60 @@ const ProductDetail = () => {
                     </div>
                   ))}
             </div>
-          </div> */}
+          </div>
         </div>
       </main>
       <Footer isDarkMode={isDarkMode} />
+      {/* Share Options Dropdown/Modal */}
+      {showShareOptions && (
+        <div
+          ref={shareRef}
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/30"
+          onClick={() => setShowShareOptions(false)}
+        >
+          <div
+            className="bg-white border rounded shadow-lg p-3 min-w-[180px]"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex flex-col gap-2">
+              <button
+                className="text-left hover:bg-muted px-2 py-1 rounded"
+                onClick={handleCopyLink}
+              >
+                Copy Link
+              </button>
+              <a
+                href={`https://wa.me/?text=${encodeURIComponent(
+                  product?.name + " - " + window.location.href
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:bg-muted px-2 py-1 rounded"
+                onClick={() => setShowShareOptions(false)}
+              >
+                Share on WhatsApp
+              </a>
+              <a
+                href={`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                  window.location.href
+                )}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="hover:bg-muted px-2 py-1 rounded"
+                onClick={() => setShowShareOptions(false)}
+              >
+                Share on Facebook
+              </a>
+              <button
+                className="text-left text-red-500 hover:bg-muted px-2 py-1 rounded"
+                onClick={() => setShowShareOptions(false)}
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

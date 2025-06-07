@@ -233,10 +233,10 @@ export const updateCart = async (userId: string, items: CartItem[]) => {
   }
 };
 
-export const addToCart = async (userId: string, product: Product, quantity: number = 1) => {
+export const addToCart = async (userId: string, product: Product, quantity: number = 1,size:string) => {
   try {
     const cart = await getCart(userId);
-    const existingItem = cart.find(item => item.id === product.id);
+    const existingItem = cart.find(item => item.id === product.id && item.size === size);
     
     if (existingItem) {
       existingItem.quantity += quantity;
@@ -245,8 +245,9 @@ export const addToCart = async (userId: string, product: Product, quantity: numb
         id: product.id,
         name: product.name,
         price: product.price,
-        originalPrice: product.discount ? Math.round(product.price / (1 - product.discount.offerPercentage / 100)) : undefined,
+        originalPrice: product.discount ? Math.round(product.price / (1 - product.discount.offerPercentage / 100)) : null,
         image: product.images[0],
+        size: size,
         quantity
       });
     }
@@ -385,6 +386,7 @@ export const createOrder = async (
       name: item.name,
       price: item.price,
       quantity: item.quantity,
+      size: item.size || "M" // Default size if not provided
     }));
     
     const orderData: Omit<Order, 'id'> = {
@@ -511,14 +513,21 @@ export const submitReview = async (
 
     await runTransaction(db, async (transaction) => {
       const productSnap = await transaction.get(productRef);
-      const currentReviewCount = productSnap.data()?.reviewCount || 0;
-    
+      const productData = productSnap.data();
+      const currentReviewCount = productData?.reviewCount || 0;
+      const currentRating = productData?.rating || 0;
+
+      // Calculate new average rating
+      const newReviewCount = currentReviewCount + 1;
+      const newRating = ((currentRating * currentReviewCount) + rating) / newReviewCount;
+
       newReviewRef = doc(reviewsRef); // Create doc ref after reads but before write
       transaction.set(newReviewRef, reviewData);
-    
-      // transaction.update(productRef, {
-      //   reviewCount: currentReviewCount + 1,
-      // });
+
+      transaction.update(productRef, {
+        reviewCount: newReviewCount,
+        rating: Number(newRating.toFixed(2)), // round to 2 decimals
+      });
     });
 
     toast({
@@ -540,7 +549,6 @@ export const submitReview = async (
 
 export const getProductReviews = async (productId: string) => {
   try {
-    debugger
     const reviewsQuery = query(
       collection(db, REVIEWS),
       where("productId", "==", productId),

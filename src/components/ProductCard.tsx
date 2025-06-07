@@ -1,4 +1,3 @@
-
 import { Link } from 'react-router-dom';
 import { Heart, ShoppingBag, Star } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -39,32 +38,15 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
     toggleFavorite(product.id);
   };
   
-  const handleAddToCart = (e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    
-    if (!currentUser) {
-      toast({
-        title: "Sign in required",
-        description: "Please sign in to add items to your cart",
-        variant: "destructive",
-      });
-      return;
-    }
-    
-    addToCart(product, 1);
-    
-    toast({
-      title: "Added to cart",
-      description: `${product.name} has been added to your cart`,
-    });
-  };
-  
   useEffect(() => {
     const today = new Date();
   
     // Convert Firebase Timestamp to JS Date
-    const validUntil = (product.discount.validDate as Timestamp).toDate();
+    const validUntil = (product.discount?.validDate as Timestamp)?.toDate();
+    if(!validUntil){
+      setDiscountedPrice(null);
+      return;
+    }
   
     if (today < validUntil) {
       const discounted = product.price - (product.discount.offerPercentage / 100) * product.price;
@@ -96,12 +78,14 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
               <div className="absolute inset-0 bg-black/10 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                 <div className="transform translate-y-4 group-hover:translate-y-0 transition-transform duration-300">
                   <Button 
+                    asChild
                     variant="default" 
                     size="sm"
                     className="bg-white hover:bg-white/90 text-primary"
-                    onClick={handleAddToCart}
                   >
-                    <ShoppingBag className="mr-1 h-4 w-4" /> Add to Cart
+                    <Link to={`/product/${product.id}`}>
+                      View
+                    </Link>
                   </Button>
                 </div>
               </div>
@@ -174,15 +158,16 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
             >
               <Heart className={`h-4 w-4 ${isFavorite ? 'fill-red-500 text-red-500' : ''}`} />
             </button>
-            
             <div className="absolute bottom-0 w-full p-2 opacity-0 group-hover:opacity-100 transition-opacity">
               <Button 
+                asChild
                 variant="default" 
                 size="sm"
-                className="w-full" 
-                onClick={handleAddToCart}
+                className="w-full"
               >
-                <ShoppingBag className="mr-1 h-4 w-4" /> Add to Cart
+                <Link to={`/product/${product.id}`}>
+                  View
+                </Link>
               </Button>
             </div>
           </div>

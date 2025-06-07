@@ -39,13 +39,13 @@ export const useCart = () => {
   }, [currentUser]);
 
   // Add item to cart
-  const addToCart = async (product: Product, quantity: number = 1) => {
+  const addToCart = async (product: Product, quantity: number = 1,size:string) => {
     if (!currentUser) {
       return false;
     }
 
     try {
-      const updatedCart = await addToCartFirestore(currentUser.uid, product, quantity);
+      const updatedCart = await addToCartFirestore(currentUser.uid, product, quantity,size);
       setCartItems(updatedCart);
       return true;
     } catch (error) {

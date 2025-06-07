@@ -75,7 +75,6 @@ const WriteReview = ({ productId, onReviewSubmit }: WriteReviewProps) => {
       }
       
     } catch (error: any) {
-      debugger
       console.error('Error submitting review:', error);
       let needSignIn=null;
       if(currentUser==null){

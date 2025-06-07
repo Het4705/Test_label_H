@@ -151,6 +151,9 @@ const Orders = () => {
                                       <p className="text-sm text-muted-foreground">
                                         Qty: {item.quantity}
                                       </p>
+                                      <p className="text-sm text-muted-foreground">
+                                        Size: {item.size}
+                                      </p>
                                     </div>
                                     <p className="font-semibold">
                                       ₹{item.price}

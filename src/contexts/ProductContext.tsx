@@ -10,7 +10,9 @@ interface ProductContextType {
   setPriceRange: (range: [number, number]) => void;
   selectedCategories: string[];
   toggleCategory: (category: string) => void;
-  toggleCollection: (category: string) => void;
+  toggleCollection: (collection: string) => void;
+  selectedCollections: string[];           // <-- add this
+  setSelectedCollections: (c: string[]) => void; // <-- add this
   selectedMaterials: string[];
   toggleMaterial: (material: string) => void;
   showDiscounted: boolean;
@@ -18,6 +20,7 @@ interface ProductContextType {
   resetFilters: () => void;
   applyFilters: () => void;
   isLoading: boolean;
+  
 }
 
 const ProductContext = createContext<ProductContextType | undefined>(undefined);
@@ -37,7 +40,7 @@ interface ProductProviderProps {
 export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) => {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [priceRange, setPriceRange] = useState<[number, number]>([0, 20000]);
+  const [priceRange, setPriceRange] = useState<[number, number]>([0, 20000]); // or [0, Infinity] if you want no upper limit
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [selectedCollections, setSelectedCollections] = useState<string[]>([]);
   const [selectedMaterials, setSelectedMaterials] = useState<string[]>([]);
@@ -67,7 +70,6 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
   }, []);
   
   const applyFilters = useCallback(() => {
-    debugger
     let result = [...products];
     
     result = result.filter(product => 
@@ -144,6 +146,8 @@ export const ProductProvider: React.FC<ProductProviderProps> = ({ children }) =>
       selectedCategories,
       toggleCategory,
       toggleCollection,
+      selectedCollections,
+      setSelectedCollections,
       selectedMaterials,
       toggleMaterial,
       showDiscounted,
