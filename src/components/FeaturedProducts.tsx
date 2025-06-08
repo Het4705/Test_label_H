@@ -42,7 +42,7 @@ const FeaturedProducts = () => {
           <h2 className="text-3xl md:text-4xl font-playfair font-bold">
             <span className="text-accent">Featured</span> Collection
           </h2>
-          <Button variant="ghost" className="gap-2">
+          <Button variant="ghost" className="gap-2" onClick={() => navigate('/products')}>
             View All <ChevronRight className="h-4 w-4" />
           </Button>
         </div>

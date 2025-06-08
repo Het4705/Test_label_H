@@ -152,3 +152,13 @@ export type AnalyticsData = {
     count: number;
   }[];
 };
+
+export type Reel = {
+  id: string
+  src: string
+  title: string
+  description: string
+  price?: string
+  thumbnail?: string
+  productId: string
+}

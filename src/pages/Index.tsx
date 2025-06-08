@@ -7,6 +7,7 @@ import CategoryShowcase from '@/components/CollectionShowcase';
 import CallToAction from '@/components/CallToAction';
 import Footer from '@/components/Footer';
 import CollectionShowcase from '@/components/CollectionShowcase';
+import ReelShowcase from '@/components/sampleReels';
 
 const Index = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
@@ -21,6 +22,7 @@ const Index = () => {
       <Navbar toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
       <main>
         <LandingAnimation />
+        <ReelShowcase />
         <FeaturedProducts />
         <CollectionShowcase />
         <CallToAction />

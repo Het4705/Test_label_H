@@ -15,7 +15,7 @@ const ProductGrid = ({ products }: ProductGridProps) => {
   const isMobile = useIsMobile();
   
   const loadMore = () => {
-    setVisibleProducts(prev => Math.min(prev + 4, products.length));
+    setVisibleProducts(prev => Math.min(prev + 4, rpoducts.length));
   };
 
   return (

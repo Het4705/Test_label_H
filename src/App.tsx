@@ -20,6 +20,7 @@ import Orders from "./pages/Orders";
 import Collections from "./pages/Collections";
 import ProductDetail from "./pages/ProductDetail";
 import Favorites from "./pages/Favorites";
+import ScrollToTop from "./components/ScrollToTop";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => {
               <Toaster />
               <Sonner />
               <BrowserRouter>
+                <ScrollToTop />
                 <AppContent />
               </BrowserRouter>
             </TooltipProvider>

@@ -23,6 +23,7 @@ const Products = () => {
     priceRange,
     selectedCollections,
     setSelectedCollections,
+    isLoading, // <-- make sure this is provided by your context
   } = useProducts();
   const [isFilterOpen, setIsFilterOpen] = useState(false);
 
@@ -123,12 +124,27 @@ const Products = () => {
             </div>
 
             <div className="md:col-span-3">
-              {isAnyFilterApplied && (
-                <div className="text-xs text-muted-foreground mb-4 font-medium">
-                  Filters are applied
+              {isLoading ? (
+                <div className="flex justify-center items-center h-64">
+                  <div className='flex flex-col justify-center items-center  '><img className='w-20 ' src="https://res.cloudinary.com/dutpxuzpt/image/upload/v1744821089/Spinner_1x-1.1s-200px-200px_topqq2.gif" alt="Your cart is loading " srcset="" />
+                  <p className='opacity-[0.5]'>Loading products...</p></div>
                 </div>
+              ) : (
+                <>
+                  {isAnyFilterApplied && (
+                    <div className="text-xs text-accent flex justify-center items-center mb-4 font-medium">
+                      Filters are applied
+                    </div>
+                  )}
+                  <ProductGrid
+                    products={
+                      filteredProducts.length > 0
+                        ? filteredProducts
+                        : visibleProducts
+                    }
+                  />
+                </>
               )}
-              <ProductGrid products={filteredProducts.length > 0 ? filteredProducts : visibleProducts} />
             </div>
           </div>
         </div>

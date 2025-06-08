@@ -35,12 +35,12 @@ const LandingAnimation = () => {
       </div>
 
       {/* Video Section */}
-      <div className="w-full max-w-5xl mx-auto mt-24 mb-16">
+      {/* <div className="w-full max-w-5xl mx-auto mt-24 mb-16">
         <h2 className="text-3xl md:text-4xl font-playfair font-bold text-center mb-12">
           Our <span className="text-accent">Story</span>
         </h2>
-        
-        <div className="relative aspect-video rounded-lg overflow-hidden group">
+         */}
+        {/* <div className="relative aspect-video rounded-lg overflow-hidden group">
           <img 
             src="https://images.unsplash.com/photo-1564419434663-c49967363669?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=675&q=80" 
             alt="Brand story video thumbnail" 
@@ -62,7 +62,7 @@ const LandingAnimation = () => {
                   <iframe 
                     width="100%" 
                     height="100%" 
-                    src="https://www.youtube.com/embed/dQw4w9WgXcQ" 
+                    src="https://youtu.be/zY3atcmLBag?si=qzphKEDEYrC4wTUe" 
                     title="Brand Story" 
                     frameBorder="0" 
                     allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
@@ -76,8 +76,8 @@ const LandingAnimation = () => {
             <h3 className="text-white text-xl md:text-2xl font-playfair font-bold">The Journey of Label H</h3>
             <p className="text-white/80 mt-2">Watch the story behind our brand and our commitment to craftsmanship</p>
           </div>
-        </div>
-      </div>
+        </div> */}
+      {/* </div> */}
     </div>
   );
 };

@@ -707,3 +707,21 @@ export const getCollections = async () => {
     throw error;
   }
 };
+
+export const getReels = async () => {
+  try {
+    const reelsQuery = query(
+      collection(db, "reels"),
+      orderBy("createdAt", "desc") // or "name" or whatever field you want
+    );
+    const reelsSnap = await getDocs(reelsQuery);
+    const reels: any[] = [];
+    reelsSnap.forEach(doc => {
+      reels.push({ id: doc.id, ...doc.data() });
+    });
+    return reels;
+  } catch (error: any) {
+    console.error("Error getting reels:", error);
+    throw error;
+  }
+};

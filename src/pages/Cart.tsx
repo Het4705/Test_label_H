@@ -1,6 +1,6 @@
 
 import { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
 import { Button } from '@/components/ui/button';
 import { Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
@@ -23,6 +23,7 @@ const Cart = () => {
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -66,6 +67,9 @@ const Cart = () => {
         title: "Order Placed Successfully",
         description: "Thank you for your purchase!",
       });
+      setTimeout(() => {
+        navigate('/orders'); // Redirect to orders page after successful order
+      }, 2000);
     } catch (error: any) {
       console.error('Error placing order:', error);
       toast({
