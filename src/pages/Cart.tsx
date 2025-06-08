@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Navbar from '../components/Navbar';
@@ -61,12 +60,51 @@ const Cart = () => {
     
     setIsProcessingOrder(true);
     try {
-      await createOrder(currentUser.uid, cartItems, address);
+      const orderRef = await createOrder(currentUser.uid, cartItems, address);
       clearCart();
       toast({
         title: "Order Placed Successfully",
         description: "Thank you for your purchase!",
       });
+
+      // Prepare custom products object
+      const products = cartItems.map(item => ({
+        name: item.name,
+        image: item.image,
+        size: item.size,
+        price: item.price,
+        quantity: item.quantity,
+      }));
+
+      // Prepare order object (customize as needed)
+      const order = {
+        id: orderRef.id,
+        shippingAddress: address,
+        total: calculateTotal(),
+        shipping: calculateShipping(),
+        subtotal: calculateSubtotal(),
+        date: new Date().toISOString(),
+      };
+
+      const user ={
+        id: currentUser.uid,
+        name: currentUser.displayName,
+        email: currentUser.email,
+      }
+      // Send email API call
+      fetch("http://localhost:5000/send-order-confirmation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user: user,
+          order,
+          products,
+        }),
+      }).catch(err => {
+        // Optionally handle API error (do not block UI)
+        console.error("Failed to send order confirmation email:", err);
+      });
+
       setTimeout(() => {
         navigate('/orders'); // Redirect to orders page after successful order
       }, 2000);
@@ -128,7 +166,7 @@ const Cart = () => {
                             <div className="flex items-center border border-border rounded-md overflow-hidden">
                               <button 
                                 className="px-3 py-1 hover:bg-muted transition-colors"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)}
                                 aria-label="Decrease quantity"
                               >
                                 <Minus className="h-4 w-4" />
@@ -136,7 +174,7 @@ const Cart = () => {
                               <span className="px-4 py-1">{item.quantity}</span>
                               <button 
                                 className="px-3 py-1 hover:bg-muted transition-colors"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
                                 aria-label="Increase quantity"
                               >
                                 <Plus className="h-4 w-4" />

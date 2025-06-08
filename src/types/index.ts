@@ -116,6 +116,9 @@ export type CartItem = {
   image: string;
   size: string;
   quantity: number;
+   discount?: {
+    offerPercentage: number;
+  };
 };
 
 export enum OrderStatus {

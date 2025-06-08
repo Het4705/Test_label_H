@@ -1,18 +1,21 @@
-
-import { useState, useEffect } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { 
-  getCart, 
-  addToCart as addToCartFirestore, 
+import { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import {
+  getCart,
+  addToCart as addToCartFirestore,
   removeFromCart as removeFromCartFirestore,
   updateCartItemQuantity,
-  clearCartFirestore
-} from '@/lib/firestore';
-import { CartItem, Product } from '@/types';
+  clearCartFirestore,
+} from "@/lib/firestore";
+import { CartItem, Product } from "@/types";
+import { Timestamp } from "firebase/firestore";
+import { off } from "process";
+import { set } from "date-fns";
 
 export const useCart = () => {
   const [cartItems, setCartItems] = useState<CartItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [offerPercentage, setOfferPercentage] = useState<number>(0);
   const { currentUser } = useAuth();
 
   // Load cart items
@@ -38,14 +41,29 @@ export const useCart = () => {
     loadCart();
   }, [currentUser]);
 
-  // Add item to cart
-  const addToCart = async (product: Product, quantity: number = 1,size:string) => {
+  const addToCart = async (
+    product: Product,
+    quantity: number = 1,
+    size: string
+  ) => {
     if (!currentUser) {
       return false;
     }
 
+  
+    if (checkDiscount(product)) {
+      const discount = product.discount?.offerPercentage || 0;
+      setOfferPercentage(discount);
+    }
+
     try {
-      const updatedCart = await addToCartFirestore(currentUser.uid, product, quantity,size);
+      const updatedCart = await addToCartFirestore(
+        currentUser.uid,
+        product,
+        quantity,
+        size,
+        offerPercentage
+      );
       setCartItems(updatedCart);
       return true;
     } catch (error) {
@@ -55,13 +73,17 @@ export const useCart = () => {
   };
 
   // Remove item from cart
-  const removeFromCart = async (productId: string,size:string) => {
+  const removeFromCart = async (productId: string, size: string) => {
     if (!currentUser) {
       return false;
     }
 
     try {
-      const updatedCart = await removeFromCartFirestore(currentUser.uid, productId,size);
+      const updatedCart = await removeFromCartFirestore(
+        currentUser.uid,
+        productId,
+        size
+      );
       setCartItems(updatedCart);
       return true;
     } catch (error) {
@@ -71,13 +93,18 @@ export const useCart = () => {
   };
 
   // Update item quantity
-  const updateQuantity = async (productId: string, quantity: number) => {
+  const updateQuantity = async (productId: string, quantity: number, size:string) => {
     if (!currentUser) {
       return false;
     }
 
     try {
-      const updatedCart = await updateCartItemQuantity(currentUser.uid, productId, quantity);
+      const updatedCart = await updateCartItemQuantity(
+        currentUser.uid,
+        productId,
+        quantity,
+        size
+      );
       setCartItems(updatedCart);
       return true;
     } catch (error) {
@@ -88,7 +115,10 @@ export const useCart = () => {
 
   // Get cart total
   const getCartTotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+    return cartItems.reduce(
+      (total, item) => total + item.price * item.quantity,
+      0
+    );
   };
 
   // Get cart count
@@ -111,6 +141,20 @@ export const useCart = () => {
     }
   };
 
+  function checkDiscount(product: Product) {
+    const today = new Date();
+    // Convert Firebase Timestamp to JS Date
+    const validUntil = (product.discount?.validDate as Timestamp)?.toDate();
+    if (!validUntil) {
+      return false;
+    }
+    if (today < validUntil) {
+      return true;
+    } else {
+      return false;
+    }
+  }
+
   return {
     cartItems,
     loading,
@@ -119,6 +163,6 @@ export const useCart = () => {
     updateQuantity,
     getCartTotal,
     getCartCount,
-    clearCart
+    clearCart,
   };
 };

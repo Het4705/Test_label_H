@@ -139,6 +139,10 @@ const Orders = () => {
                         <AccordionContent>
                           <div className="space-y-6">
                             <div>
+                              <h3 className="font-semibold mb-2">Order ID</h3>
+                              <p className="text-sm text-muted-foreground">
+                                {order.id}
+                              </p>
                               <h3 className="font-semibold mb-2">Items</h3>
                               <div className="space-y-4">
                                 {order.items.map((item) => (

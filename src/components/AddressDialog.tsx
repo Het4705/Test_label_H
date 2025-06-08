@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -191,7 +190,11 @@ const AddressDialog = ({ isOpen, onClose, onSelectAddress }: AddressDialogProps)
 
         {!showAddressForm ? (
           <div className="space-y-4">
-            {addresses.length === 0 ? (
+            {isLoading ? (
+              <div className="text-center py-6">
+                <p className="text-muted-foreground">Loading addresses...</p>
+              </div>
+            ) : addresses.length === 0 ? (
               <div className="text-center py-6">
                 <p className="text-muted-foreground">No addresses yet</p>
               </div>

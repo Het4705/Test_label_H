@@ -236,7 +236,7 @@ export const updateCart = async (userId: string, items: CartItem[]) => {
   }
 };
 
-export const addToCart = async (userId: string, product: Product, quantity: number = 1,size:string) => {
+export const addToCart = async (userId: string, product: Product, quantity: number = 1,size:string,offerPercentage:number) => {
   try {
     const cart = await getCart(userId);
     const existingItem = cart.find(item => item.id === product.id && item.size === size);
@@ -251,6 +251,7 @@ export const addToCart = async (userId: string, product: Product, quantity: numb
         originalPrice: product.discount ? Math.round(product.price / (1 - product.discount.offerPercentage / 100)) : null,
         image: product.images[0],
         size: size,
+        discount: product.discount ? { offerPercentage: product.discount.offerPercentage } : null,
         quantity
       });
     }
@@ -269,10 +270,10 @@ export const addToCart = async (userId: string, product: Product, quantity: numb
   }
 };
 
-export const removeFromCart = async (userId: string, productId: string) => {
+export const removeFromCart = async (userId: string, productId: string, size: string) => {
   try {
     const cart = await getCart(userId);
-    const updatedCart = cart.filter(item => item.id !== productId);
+    const updatedCart = cart.filter(item => !(item.id === productId && item.size === size));
     
     await updateCart(userId, updatedCart);
     
@@ -293,11 +294,11 @@ export const removeFromCart = async (userId: string, productId: string) => {
   }
 };
 
-export const updateCartItemQuantity = async (userId: string, productId: string, quantity: number) => {
+export const updateCartItemQuantity = async (userId: string, productId: string, quantity: number, size: string) => {
   try {
     const cart = await getCart(userId);
     const updatedCart = cart.map(item => 
-      item.id === productId 
+      item.id === productId && item.size === size
         ? { ...item, quantity: Math.max(1, quantity) } 
         : item
     );

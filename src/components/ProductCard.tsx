@@ -18,7 +18,6 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
    const { currentUser } = useAuth();
    const [discountedPrice,setDiscountedPrice]=useState(null);
   const { favoriteIds, toggleFavorite } = useFavorites();
-  const { addToCart } = useCart();
   
   const isFavorite = favoriteIds.includes(product.id);
   
@@ -69,7 +68,7 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
                 className="absolute inset-0 w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
               />
               
-              {product.discount && (
+              { discountedPrice && (
                 <span className="absolute top-2 left-2 bg-destructive text-white text-xs font-bold px-2 py-1 rounded">
                   {product.discount.offerPercentage}% OFF
                 </span>
@@ -147,7 +146,7 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
             
             {discountedPrice && (
               <span className="absolute top-2 left-2 bg-destructive text-white text-xs font-bold px-2 py-1 rounded">
-                {discountedPrice}% OFF
+                {product?.discount?.offerPercentage}% OFF
               </span>
             )}
             
@@ -186,10 +185,10 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
               </span>
             </div>
             <div className="flex items-center mt-2">
-              <span className="font-semibold text-accent">₹{product.price}</span>
+              <span className="font-semibold text-accent">₹{(discountedPrice ?? product.price).toFixed(2)}</span>
               {discountedPrice && (
                 <span className="ml-2 text-sm text-muted-foreground line-through">
-                  ₹{discountedPrice}
+                  ₹{product.price.toFixed(2)}
                 </span>
               )}
             </div>

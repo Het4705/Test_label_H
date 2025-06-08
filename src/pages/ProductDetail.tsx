@@ -38,6 +38,7 @@ import {
   where,
   limit,
   getDocs,
+  Timestamp,
 } from "firebase/firestore";
 import { Product } from "@/types";
 import Footer from "@/components/Footer";
@@ -56,6 +57,7 @@ const ProductDetail = () => {
   const [similarProducts, setSimilarProducts] = useState<Product[]>([]);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [showShareOptions, setShowShareOptions] = useState(false);
+  const [discountedPrice, setDiscountedPrice] = useState(null);
   const shareRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { addToCart } = useCart();
@@ -64,6 +66,7 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
+        debugger;
         setLoading(true);
         const productDoc = await getDoc(doc(db, "products", id as string));
 
@@ -75,6 +78,31 @@ const ProductDetail = () => {
 
           setProduct(productData);
           fetchSimilarProducts(productData.category, productData.collectionId);
+
+          // Discount logic (safe, uses productData)
+          if (
+            productData.discount &&
+            productData.discount.validDate &&
+            productData.discount.offerPercentage
+          ) {
+            const today = new Date();
+            let validUntil: Date | null = null;
+            if (typeof productData.discount.validDate.toDate === "function") {
+              validUntil = productData.discount.validDate.toDate();
+            } else if ("seconds" in productData.discount.validDate) {
+              validUntil = new Date(productData.discount.validDate.seconds * 1000);
+            }
+            if (validUntil && today < validUntil) {
+              const discounted =
+                productData.price -
+                (productData.discount.offerPercentage / 100) * productData.price;
+              setDiscountedPrice(Math.round(discounted));
+            } else {
+              setDiscountedPrice(null);
+            }
+          } else {
+            setDiscountedPrice(null);
+          }
         } else {
           toast({
             title: "Product not found",
@@ -235,6 +263,7 @@ const ProductDetail = () => {
       });
       return;
     }
+  debugger;
     addToCart(product, quantity, selectedSize);
     toast({
       title: "Added to Cart",
@@ -259,23 +288,6 @@ const ProductDetail = () => {
         ? `${product.name} removed from your wishlist`
         : `${product.name} added to your wishlist`,
     });
-  };
-
-  const handleShare = async () => {
-    const shareData = {
-      title: product?.name,
-      text: product?.description,
-      url: window.location.href,
-    };
-    if (navigator.share) {
-      try {
-        await navigator.share(shareData);
-      } catch (err) {
-        // User cancelled or error
-      }
-    } else {
-      setShowShareOptions(true);
-    }
   };
 
   const handleCopyLink = () => {
@@ -371,16 +383,14 @@ const ProductDetail = () => {
               </div>
 
               <div className="mb-6">
-                <span className="text-3xl font-bold">₹{product.price}</span>
+                <span className="text-3xl font-bold">₹{(discountedPrice ?? product.price).toFixed(2)}</span>
                 {product.discount && (
                   <>
-                    <span className="ml-3 text-lg text-muted-foreground line-through">
-                      ₹
-                      {Math.round(
-                        product.price /
-                          (1 - product.discount.offerPercentage / 100)
-                      )}
-                    </span>
+                    {discountedPrice && (
+                      <span className="ml-2 text-lg text-muted-foreground line-through">
+                        ₹{product.price.toFixed(2)}
+                      </span>
+                    )}
                     <span className="ml-2 text-sm text-destructive font-semibold">
                       ({product.discount.offerPercentage}% OFF)
                     </span>
@@ -478,16 +488,14 @@ const ProductDetail = () => {
               </div>
 
               <div className="flex flex-wrap gap-4 mb-8">
-                      <Button
-                        size="lg"
-                        className="flex-1 min-w-[150px]"
-                        onClick={handleAddToCart}
-                        disabled={
-                          product.stock < 1                         
-                        }
-                      >
-                        <ShoppingBag className="mr-2 h-5 w-5" /> Add to Cart
-                      </Button>
+                <Button
+                  size="lg"
+                  className="flex-1 min-w-[150px]"
+                  onClick={handleAddToCart}
+                  disabled={product.stock < 1}
+                >
+                  <ShoppingBag className="mr-2 h-5 w-5" /> Add to Cart
+                </Button>
                 {/* <Button
                   size="lg"
                   variant="secondary"
@@ -543,7 +551,6 @@ const ProductDetail = () => {
                   </Tooltip>
                 </TooltipProvider>
               </div>
-             
 
               <div className="bg-muted/30 rounded-lg p-4 flex items-start space-x-3">
                 <Info className="h-5 w-5 text-accent mt-0.5" />
