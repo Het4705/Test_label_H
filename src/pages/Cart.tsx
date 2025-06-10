@@ -92,7 +92,8 @@ const Cart = () => {
         email: currentUser.email,
       }
       // Send email API call
-      fetch("http://localhost:5000/send-order-confirmation", {
+      debugger;
+      fetch(import.meta.env.VITE_EMAIL_SERVICE_PRODUCTION_URL+"/"+"send-order-confirmation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -123,7 +124,7 @@ const Cart = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
-      <main className="pt-24 pb-16 px-4 md:px-8 flex-grow">
+      <main className="pt-24 pb-16 px-4 min-h-[80vh] md:px-8 flex-grow">
         <div className="max-w-6xl mx-auto">
           <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-10 text-center">
             Your <span className="text-accent">Cart</span>

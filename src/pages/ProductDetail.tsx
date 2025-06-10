@@ -14,6 +14,7 @@ import {
   Info,
   Loader2,
   Copy,
+  X,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -44,6 +45,7 @@ import { Product } from "@/types";
 import Footer from "@/components/Footer";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/contexts/AuthContext";
+import { Dialog } from "@/components/ui/dialog"; // If you have a Dialog component, else use a simple div/modal
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -58,6 +60,7 @@ const ProductDetail = () => {
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [discountedPrice, setDiscountedPrice] = useState(null);
+  const [showImageModal, setShowImageModal] = useState(false);
   const shareRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { addToCart } = useCart();
@@ -322,7 +325,11 @@ const ProductDetail = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 mb-12">
             <div className="space-y-4">
-              <div className="aspect-square bg-muted/30 rounded-lg overflow-hidden">
+              {/* Product Image with click handler */}
+              <div
+                className="aspect-square bg-muted/30 rounded-lg overflow-hidden cursor-pointer"
+                onClick={() => setShowImageModal(true)}
+              >
                 <img
                   src={productImages[currentImageIndex]}
                   alt={product.name}
@@ -822,6 +829,40 @@ const ProductDetail = () => {
                 Cancel
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Image Modal */}
+      {showImageModal && (
+        <div
+          className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70"
+          onClick={() => setShowImageModal(false)}
+        >
+          <div
+            className={`
+              bg-background rounded-lg overflow-hidden shadow-lg
+              flex items-center justify-center
+              transition-all
+              h-[90vh]
+              w-[80vw]
+              relative
+            `}
+            onClick={e => e.stopPropagation()}
+          >
+            <button
+              className="absolute top-2 right-2 z-10 bg-white/80 hover:bg-white rounded-full p-1 shadow"
+              onClick={() => setShowImageModal(false)}
+              aria-label="Close image preview"
+              type="button"
+            >
+              <X className="h-6 w-6 text-foreground" />
+            </button>
+            <img
+              src={productImages[currentImageIndex]}
+              alt={product.name}
+              className="w-full h-full object-contain"
+            />
           </div>
         </div>
       )}

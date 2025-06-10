@@ -79,7 +79,7 @@ const Products = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <Navbar toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
-      <main className="pt-24 pb-16 px-4 md:px-8 flex-grow">
+      <main className="pt-24 min-h-[80vh] pb-16 px-4 md:px-8 flex-grow">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
             {/* Overlay for mobile filter sidebar */}
