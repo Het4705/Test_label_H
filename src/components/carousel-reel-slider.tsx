@@ -222,9 +222,9 @@ export default function CarouselReelSlider({
               {current.description.slice(0, 100)}{current.description.length > 100 ? "..." : ""}
             </p>
             {current.price && (
-              <div className="flex items-center justify-between">
-                <p className="text-white font-bold text-base sm:text-xl md:text-2xl">{current.price}</p>
-                <Button size="sm" className="text-xs md:text-sm h-8 bg-white text-black hover:bg-white/90" onClick={()=>navigate(`/product/${current.productId}`)}>
+              <div className="flex items-between justify-between">
+                {/* <p className="text-white font-bold text-base sm:text-xl md:text-2xl">{current.price}</p> */}
+                <Button size="sm" className="text-xs w-full md:text-sm h-8 bg-white text-black hover:bg-white/90" onClick={()=>navigate(`/product/${current.productId}`)}>
                   Shop Now <ShoppingCart className="h-4 w-4 ml-1" />
                 </Button>
               </div>

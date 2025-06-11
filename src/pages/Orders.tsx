@@ -31,10 +31,6 @@ const Orders = () => {
   };
 
   const formatDate = (date: Date) => {
-    console.log(date, typeof date);
-    // Also try:
-    console.log(new Date(date));
-
     return new Date(date).toLocaleDateString("en-US", {
       year: "numeric",
       month: "long",
@@ -130,7 +126,7 @@ const Orders = () => {
                         </span>{" "}
                         {order.items.length === 1 ? "item" : "items"}
                       </p>
-                      <p className="font-bold">₹{order.total}</p>
+                      <p className="font-bold">₹{order.total.toFixed(1)}</p>
                     </div>
 
                     <Accordion type="single" collapsible className="mt-4">
@@ -160,7 +156,7 @@ const Orders = () => {
                                       </p>
                                     </div>
                                     <p className="font-semibold">
-                                      ₹{item.price}
+                                      ₹{item.price.toFixed(1)}
                                     </p>
                                   </div>
                                 ))}

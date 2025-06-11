@@ -22,6 +22,7 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
   const isFavorite = favoriteIds.includes(product.id);
   
   const handleToggleFavorite = (e: React.MouseEvent) => {
+    debugger;
     e.preventDefault();
     e.stopPropagation();
     
@@ -146,7 +147,7 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
             
             {discountedPrice && (
               <span className="absolute top-2 left-2 bg-destructive text-white text-xs font-bold px-2 py-1 rounded">
-                {product?.discount?.offerPercentage}% OFF
+                {product?.discount?.offerPercentage.toFixed(1) }% OFF
               </span>
             )}
             

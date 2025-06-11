@@ -19,7 +19,6 @@ const CollectionShowcase = () => {
       try {
         const data = await getCollections();
         setCollections(data);
-        console.log(data);
       } catch (error) {
         console.error("Failed to fetch collections", error);
       }

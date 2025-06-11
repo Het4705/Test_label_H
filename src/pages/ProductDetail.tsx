@@ -45,7 +45,10 @@ import { Product } from "@/types";
 import Footer from "@/components/Footer";
 import { useCart } from "@/hooks/use-cart";
 import { useAuth } from "@/contexts/AuthContext";
-import { Dialog } from "@/components/ui/dialog"; // If you have a Dialog component, else use a simple div/modal
+import { Dialog, DialogContent, DialogHeader, DialogFooter, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const ProductDetail = () => {
   const { id } = useParams<{ id: string }>();
@@ -61,6 +64,9 @@ const ProductDetail = () => {
   const [showShareOptions, setShowShareOptions] = useState(false);
   const [discountedPrice, setDiscountedPrice] = useState(null);
   const [showImageModal, setShowImageModal] = useState(false);
+  const [showCustomizeDialog, setShowCustomizeDialog] = useState(false);
+  const [customization, setCustomization] = useState("");
+  const [customizationError, setCustomizationError] = useState("");
   const shareRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
   const { addToCart } = useCart();
@@ -69,7 +75,6 @@ const ProductDetail = () => {
   useEffect(() => {
     const fetchProduct = async () => {
       try {
-        debugger;
         setLoading(true);
         const productDoc = await getDoc(doc(db, "products", id as string));
 
@@ -80,6 +85,11 @@ const ProductDetail = () => {
           } as Product;
 
           setProduct(productData);
+          // Select first available size by default
+          if (productData.size && productData.size.length > 0) {
+            const firstAvailable = productData.size.find(s => s.available);
+            if (firstAvailable) setSelectedSize(firstAvailable.length);
+          }
           fetchSimilarProducts(productData.category, productData.collectionId);
 
           // Discount logic (safe, uses productData)
@@ -90,10 +100,13 @@ const ProductDetail = () => {
           ) {
             const today = new Date();
             let validUntil: Date | null = null;
-            if (typeof productData.discount.validDate.toDate === "function") {
-              validUntil = productData.discount.validDate.toDate();
-            } else if ("seconds" in productData.discount.validDate) {
-              validUntil = new Date(productData.discount.validDate.seconds * 1000);
+            const validDate = productData.discount.validDate;
+            if (validDate && typeof (validDate as any).toDate === "function") {
+              validUntil = (validDate as any).toDate();
+            } else if (validDate && typeof validDate === "object" && "seconds" in validDate) {
+              validUntil = new Date((validDate as any).seconds * 1000);
+            } else if (validDate instanceof Date) {
+              validUntil = validDate;
             }
             if (validUntil && today < validUntil) {
               const discounted =
@@ -256,7 +269,6 @@ const ProductDetail = () => {
       });
       return;
     }
-    // Check available quantity (assume product.quantity is available)
     const availableQty = product.stock;
     if (quantity > availableQty) {
       toast({
@@ -266,21 +278,26 @@ const ProductDetail = () => {
       });
       return;
     }
-  debugger;
-    addToCart(product, quantity, selectedSize);
-    toast({
-      title: "Added to Cart",
-      description: `${quantity} × ${product.name}${
-        selectedSize ? ` (${selectedSize})` : ""
-      } added to your cart`,
-    });
+    setShowCustomizeDialog(true);
   };
 
-  const handleBuyNow = () => {
+  const handleConfirmCustomization = async () => {
+    if (!customization.trim()) {
+      setCustomizationError("Please enter your size/customization details.");
+      return;
+    }
+    setCustomizationError("");
+    setShowCustomizeDialog(false);
+    // Pass customization to addToCart
+    await addToCart(product, quantity, selectedSize, customization.trim());
     toast({
-      title: "Processing",
-      description: "Redirecting to checkout...",
+      title: "Added to Cart",
+      description: `${quantity} × ${product.name}${selectedSize ? ` (${selectedSize})` : ""} added to your cart`,
     });
+    setCustomization("");
+    setTimeout(()=>{
+     location.reload();
+    },2000)
   };
 
   const toggleFavorite = () => {
@@ -399,7 +416,7 @@ const ProductDetail = () => {
                       </span>
                     )}
                     <span className="ml-2 text-sm text-destructive font-semibold">
-                      ({product.discount.offerPercentage}% OFF)
+                      ({product.discount.offerPercentage.toFixed(1)}% OFF)
                     </span>
                   </>
                 )}
@@ -866,6 +883,41 @@ const ProductDetail = () => {
           </div>
         </div>
       )}
+
+      {/* Customize Size Dialog */}
+      <Dialog open={showCustomizeDialog} onOpenChange={setShowCustomizeDialog}>
+        <DialogContent className="max-w-md w-full">
+          <DialogHeader>
+            <DialogTitle>Customize Size</DialogTitle>
+            <DialogDescription>
+              <div className="flex items-start gap-2 mb-2">
+                <Info className="h-5 w-5 text-accent mt-0.5" />
+                <span>
+                  Please mention your size details or any customization requests. <br />
+                  <span className="font-medium text-accent">Each dress is custom-made for you.</span>
+                </span>
+              </div>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-2 mt-2">
+            <Label htmlFor="customization">Customization Details <span className="text-destructive">*</span></Label>
+            <Textarea
+              id="customization"
+              value={customization}
+              onChange={e => setCustomization(e.target.value)}
+              placeholder={'E.g. Bust: 34", Waist: 28", Hips: 36", Height: 5\'4", or any special requests'}
+              required
+              className={customizationError ? "border-destructive" : ""}
+              rows={4}
+            />
+            {customizationError && <p className="text-destructive text-xs mt-1">{customizationError}</p>}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCustomizeDialog(false)} type="button">Cancel</Button>
+            <Button onClick={handleConfirmCustomization} type="button">Add to Cart</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

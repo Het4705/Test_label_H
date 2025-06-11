@@ -29,9 +29,14 @@ const Cart = () => {
     document.documentElement.classList.toggle('dark');
   };
 
+  // const calculateSubtotal = () => {
+  //   return cartItems.reduce((total, item) => total + ((item.price - ((item.price/100)*item.discount.offerPercentage)) * item.quantity), 0).toFixed(1);
+  // };
   const calculateSubtotal = () => {
-    return cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
-  };
+  const subtotal = cartItems.reduce((total, item) =>
+    total + ((item.price - ((item.price / 100) * item.discount.offerPercentage)) * item.quantity), 0);
+  return Math.round(subtotal * 10) / 10; // Keeps 1 decimal place, returns a number
+};
 
   const calculateShipping = () => {
     const subtotal = calculateSubtotal();
@@ -74,6 +79,7 @@ const Cart = () => {
         size: item.size,
         price: item.price,
         quantity: item.quantity,
+        Customization: item.customization
       }));
 
       // Prepare order object (customize as needed)
@@ -92,8 +98,8 @@ const Cart = () => {
         email: currentUser.email,
       }
       // Send email API call
-      debugger;
-      fetch(import.meta.env.VITE_EMAIL_SERVICE_PRODUCTION_URL+"/"+"send-order-confirmation", {
+      const url = import.meta.env.VITE_EMAIL_SERVICE_PRODUCTION_URL+"/"+"send-order-confirmation";
+      fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -149,7 +155,7 @@ const Cart = () => {
                   <h2 className="text-xl font-playfair font-semibold mb-6">Shopping Cart ({cartItems.length} items)</h2>
                   <div className="space-y-6">
                     {cartItems.map((item) => (
-                      <div key={item.id} className="flex flex-col md:flex-row gap-4">
+                      <div key={item.id + (item.customization || "") + item.size} className="flex flex-col md:flex-row gap-4">
                         <div className="w-full md:w-32 h-40 overflow-hidden rounded-md">
                           <img 
                             src={item.image} 
@@ -160,8 +166,26 @@ const Cart = () => {
                         <div className="flex-grow flex flex-col justify-between">
                           <div>
                             <h3 className="font-playfair text-lg font-semibold">{item.name}  [ <span className="font-semibold text-accent">{item.size}</span> ] </h3>
-                            <p className="text-accent font-bold">₹{item.price}</p>
-                            
+                            {item.discount && item.discount.offerPercentage ? (
+                              <div className="flex items-center gap-2 mt-1">
+                                <span className="text-muted-foreground line-through text-sm">
+                                  ₹{item.price}
+                                </span>
+                                <span className="text-accent font-bold text-base">
+                                  ₹{item.price - ((item.price/100)*item.discount.offerPercentage).toFixed(1)}
+                                </span>
+                                <span className="text-xs text-destructive font-semibold">
+                                  ({item.discount.offerPercentage.toFixed(1)}% OFF)
+                                </span>
+                              </div>
+                            ) : (
+                              <p className="text-accent font-bold">₹{item.price}</p>
+                            )}
+                            {item.customization && (
+                              <p className="text-xs text-muted-foreground mt-1">
+                                <span className="font-semibold">Customization:</span> {item.customization}
+                              </p>
+                            )}
                           </div>
                           <div className="flex justify-between items-center mt-4">
                             <div className="flex items-center border border-border rounded-md overflow-hidden">
@@ -238,12 +262,10 @@ const Cart = () => {
                 </div>
               </div>
             </div>
-          ):<div className='flex flex-col justify-center items-center  '><img className='w-20 ' src="https://res.cloudinary.com/dutpxuzpt/image/upload/v1744821089/Spinner_1x-1.1s-200px-200px_topqq2.gif" alt="Your cart is loading " srcset="" /><p className='opacity-[0.5]'>
-            Your cart is loading</p> </div>}
+          ) : <div className='flex flex-col justify-center items-center'><img className='w-20' src="https://res.cloudinary.com/dutpxuzpt/image/upload/v1744821089/Spinner_1x-1.1s-200px-200px_topqq2.gif" alt="Your cart is loading" /><p className='opacity-[0.5]'>Your cart is loading</p></div>}
         </div>
       </main>
       <Footer isDarkMode={isDarkMode} />
-      
       <AddressDialog 
         isOpen={isAddressDialogOpen}
         onClose={() => setIsAddressDialogOpen(false)}
@@ -251,6 +273,6 @@ const Cart = () => {
       />
     </div>
   );
-};
+}
 
 export default Cart;

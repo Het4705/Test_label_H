@@ -14,25 +14,25 @@ const LandingAnimation = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br 
     my-20
-    from-background to-background/50">
+    from-background to-background/50 ">
       <div className={`label-h-animation h-[90vh]
       flex flex-col justify-center ${show ? 'opacity-100' : 'opacity-0'} text-center`}>
-        <h1 className="text-6xl md:text-8xl lg:text-9xl font-playfair font-bold">
+        <h1 className="text-8xl md:text-10xl lg:text-9xl font-playfair font-bold">
           <span className="text-foreground">The</span>
           <br />
           <span className="text-accent">Label H</span>
         </h1>
-        <p className="mt-4 text-xl md:text-2xl text-foreground/70">Elegance Redefined</p>
+        <p className="mt-4 text-xl md:text-2xl text-foreground">Elegance Redefined</p>
       </div>
 
-      {/* Banner image below the title */}
+      {/* Banner image below the title
       <div className="w-full max-w-5xl mx-auto mt-12 overflow-hidden rounded-lg">
         <img 
-          src="https://images.unsplash.com/photo-1603189863862-f6f7724257b4?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&h=400&q=80" 
+          src="https://res.cloudinary.com/dvhhx0aid/image/upload/v1749667634/Screenshot_2025-06-12_001632_crofnf.png" 
           alt="The Label H Collection" 
           className="w-full h-auto object-cover"
         />
-      </div>
+      </div> */}
 
       {/* Video Section */}
       {/* <div className="w-full max-w-5xl mx-auto mt-24 mb-16">

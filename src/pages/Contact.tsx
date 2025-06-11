@@ -58,7 +58,6 @@ const Contact = () => {
     
     // Simulate form submission
     setTimeout(() => {
-      console.log("Form data:", data);
       toast({
         title: "Message Sent",
         description: "We'll get back to you as soon as possible.",
@@ -73,10 +72,7 @@ const Contact = () => {
       <Navbar toggleTheme={toggleTheme} isDarkMode={isDarkMode} />
       <main className="pt-24 pb-16 px-4 md:px-8">
         <div className="max-w-5xl mx-auto">
-          <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-8 text-center">
-            Contact <span className="text-accent">Us</span>
-          </h1>
-          
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 mb-16">
             <div>
               <h2 className="text-2xl font-playfair font-bold mb-6">Get in Touch</h2>
@@ -86,14 +82,14 @@ const Contact = () => {
               </p>
               
               <div className="space-y-6">
-                <div className="flex items-start space-x-4">
+                <div className="flex  items-start space-x-4">
                   <MapPin className="h-5 w-5 text-accent mt-1" />
                   <div>
                     <h3 className="font-semibold">Address</h3>
                     <p className="text-muted-foreground">
-                      123 Fashion Street, Design District<br />
-                      Mumbai, Maharashtra 400001<br />
-                      India
+                      B-12 Rajeshwar Duplex, Near Sukhdham Residency<br />
+                      Dabhoi Waghodia Ring Road,Vadodara,Gujarat<br />
+                      India - 390025
                     </p>
                   </div>
                 </div>
@@ -102,15 +98,16 @@ const Contact = () => {
                   <Phone className="h-5 w-5 text-accent mt-1" />
                   <div>
                     <h3 className="font-semibold">Phone</h3>
-                    <p className="text-muted-foreground">+91 98765 43210</p>
+                    <p className="text-muted-foreground">+91 8511516510</p>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-4">
                   <Mail className="h-5 w-5 text-accent mt-1" />
                   <div>
-                    <h3 className="font-semibold">Email</h3>
-                    <p className="text-muted-foreground">info@thelabelh.com</p>
+                    <h3 className="font-semibold">Emails</h3>
+                    <p className="text-muted-foreground">Thelabelh00@gmail.com</p>
+                    <p className="text-muted-foreground">tadvihinal2@gmail.com</p>
                   </div>
                 </div>
               </div>
@@ -134,7 +131,7 @@ const Contact = () => {
               </div>
             </div>
             
-            <div>
+            {/* <div>
               <h2 className="text-2xl font-playfair font-bold mb-6">Send Us a Message</h2>
               <Form {...form}>
                 <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -215,12 +212,12 @@ const Contact = () => {
                   </Button>
                 </form>
               </Form>
-            </div>
+            </div> */}
           </div>
           
           <div className="rounded-lg overflow-hidden h-[400px]">
             <iframe 
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d60341.15535297368!2d72.82059842431032!3d18.94413570949542!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3be7ce40ffcfcbed%3A0x55b233ca585a33c7!2sMumbai%2C%20Maharashtra%2C%20India!5e0!3m2!1sen!2sus!4v1657890557863!5m2!1sen!2sus" 
+              src="https://www.google.com/maps/embed?pb=!1m21!1m12!1m3!1d662.8342209067446!2d73.2369992659136!3d22.28483269456574!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!4m6!3e0!4m0!4m3!3m2!1d22.28445839072901!2d73.23676233474875!5e0!3m2!1sen!2sin!4v1749666187106!5m2!1sen!2sin" 
               width="100%" 
               height="100%" 
               style={{ border: 0 }} 

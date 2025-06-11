@@ -119,20 +119,17 @@ export const updateUserProfile = async (userId: string, data: Partial<User>) => 
 // Product Operations
 export const getProducts = async () => {
   try {
-    console.log("3 Fetching products:");
     const productsQuery = query(
       collection(db, PRODUCTS),
       orderBy("name")
     );
     
     const productsSnap = await getDocs(productsQuery);
-    console.log("1 Fetched products:", productsSnap);
     const products: Product[] = [];
     
     productsSnap.forEach(doc => {
       products.push({ id: doc.id, ...doc.data() } as Product);
     });
-    console.log("2 Fetched products:", products);
     
     return products;
   } catch (error: any) {
@@ -236,11 +233,10 @@ export const updateCart = async (userId: string, items: CartItem[]) => {
   }
 };
 
-export const addToCart = async (userId: string, product: Product, quantity: number = 1,size:string,offerPercentage:number) => {
+export const addToCart = async (userId: string, product: Product, quantity: number = 1, size: string, offerPercentage: number, customization?: string) => {
   try {
     const cart = await getCart(userId);
-    const existingItem = cart.find(item => item.id === product.id && item.size === size);
-    
+    const existingItem = cart.find(item => item.id === product.id && item.size === size && (item.customization || "") === (customization || ""));
     if (existingItem) {
       existingItem.quantity += quantity;
     } else {
@@ -252,12 +248,11 @@ export const addToCart = async (userId: string, product: Product, quantity: numb
         image: product.images[0],
         size: size,
         discount: product.discount ? { offerPercentage: product.discount.offerPercentage } : null,
-        quantity
+        quantity,
+        ...(customization ? { customization } : {})
       });
     }
-    
     await updateCart(userId, cart);
-    
     return cart;
   } catch (error: any) {
     console.error("Error adding to cart:", error);
@@ -379,17 +374,18 @@ export const createOrder = async (
   billingAddress?: Address
 ) => {
   try {
-    const subtotal = items.reduce((total, item) => total + (item.price * item.quantity), 0);
+    const subtotal = items.reduce((total, item) => total + ((item.price - ((item.price / 100) * item.discount.offerPercentage)) * item.quantity), 0);
     const shipping = subtotal > 1500 ? 0 : 99;
-    const tax = Math.round(subtotal * 0.18); // 18% GST
-    const total = subtotal + shipping + tax;
+    const tax = 0;
+    const total = subtotal + shipping;
     
     // Convert CartItem[] to OrderItem[]
     const orderItems: OrderItem[] = items.map(item => ({
       productId: item.id,
       name: item.name,
-      price: item.price,
+      price: (item.price - ((item.price / 100) * item.discount.offerPercentage)),
       quantity: item.quantity,
+      customization:item.customization,
       size: item.size || "M" // Default size if not provided
     }));
     

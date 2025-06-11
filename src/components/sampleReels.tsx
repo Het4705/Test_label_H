@@ -10,7 +10,6 @@ export default function ReelShowcase() {
   useEffect(() => {
     const fetchReels = async () => {
       try {
-        debugger;
         const data = await getReels()
         setReels(data)
       } catch (error) {

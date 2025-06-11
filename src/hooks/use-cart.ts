@@ -44,26 +44,38 @@ export const useCart = () => {
   const addToCart = async (
     product: Product,
     quantity: number = 1,
-    size: string
+    size: string,
+    customization?: string
   ) => {
     if (!currentUser) {
       return false;
     }
 
-  
     if (checkDiscount(product)) {
       const discount = product.discount?.offerPercentage || 0;
       setOfferPercentage(discount);
     }
 
     try {
-      const updatedCart = await addToCartFirestore(
-        currentUser.uid,
-        product,
-        quantity,
-        size,
-        offerPercentage
-      );
+      let updatedCart;
+      if (customization) {
+        updatedCart = await addToCartFirestore(
+          currentUser.uid,
+          product,
+          quantity,
+          size,
+          offerPercentage,
+          customization,
+        );
+      } else {
+        updatedCart = await addToCartFirestore(
+          currentUser.uid,
+          product,
+          quantity,
+          size,
+          offerPercentage
+        );
+      }
       setCartItems(updatedCart);
       return true;
     } catch (error) {
@@ -143,16 +155,20 @@ export const useCart = () => {
 
   function checkDiscount(product: Product) {
     const today = new Date();
-    // Convert Firebase Timestamp to JS Date
-    const validUntil = (product.discount?.validDate as Timestamp)?.toDate();
+    let validUntil: Date | undefined;
+    if (product.discount?.validDate) {
+      if (typeof (product.discount.validDate as any).toDate === "function") {
+        validUntil = (product.discount.validDate as any).toDate();
+      } else if (typeof product.discount.validDate === "object" && "seconds" in product.discount.validDate) {
+        validUntil = new Date((product.discount.validDate as any).seconds * 1000);
+      } else if (product.discount.validDate instanceof Date) {
+        validUntil = product.discount.validDate;
+      }
+    }
     if (!validUntil) {
       return false;
     }
-    if (today < validUntil) {
-      return true;
-    } else {
-      return false;
-    }
+    return today < validUntil;
   }
 
   return {

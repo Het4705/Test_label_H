@@ -1,4 +1,3 @@
-
 import { Timestamp as FirestoreTimestamp } from 'firebase/firestore';
 
 // Export Timestamp type for use throughout the application
@@ -86,6 +85,7 @@ export type Order = {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   trackingNumber?: string;
+  customization?: string; // Custom size/details
 };
 
 export type OrderItem = {
@@ -94,6 +94,7 @@ export type OrderItem = {
   price: number;
   quantity: number;
   size: string;
+  customization?:string;
 };
 
 export type Review = {
@@ -116,9 +117,10 @@ export type CartItem = {
   image: string;
   size: string;
   quantity: number;
-   discount?: {
+  discount?: {
     offerPercentage: number;
   };
+  customization?: string; // Custom size/details
 };
 
 export enum OrderStatus {
