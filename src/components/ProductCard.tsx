@@ -22,7 +22,6 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
   const isFavorite = favoriteIds.includes(product.id);
   
   const handleToggleFavorite = (e: React.MouseEvent) => {
-    debugger;
     e.preventDefault();
     e.stopPropagation();
     

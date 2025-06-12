@@ -69,7 +69,7 @@ const FeaturedProducts = () => {
               </div>
               <div className="p-4">
                 <h3 className="font-playfair text-lg font-semibold">{product.name}</h3>
-                <p className="text-foreground/70">₹{product.price}</p>
+                <p className="text-foreground/70">₹{(product.price - ((product.price / 100) * product?.discount?.offerPercentage)).toFixed(1)}</p>
               </div>
             </div>
           ))}
