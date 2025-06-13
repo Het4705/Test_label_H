@@ -79,7 +79,7 @@ const Cart = () => {
         size: item.size,
         price: item.price,
         quantity: item.quantity,
-        Customization: item.customization
+        customization: item.customization
       }));
 
       // Prepare order object (customize as needed)
@@ -172,7 +172,7 @@ const Cart = () => {
                                   ₹{item.price}
                                 </span>
                                 <span className="text-accent font-bold text-base">
-                                  ₹{item.price - ((item.price/100)*item.discount.offerPercentage).toFixed(1)}
+                                  ₹{(item.price - ((item.price/100)*item.discount.offerPercentage)).toFixed(1)}
                                 </span>
                                 <span className="text-xs text-destructive font-semibold">
                                   ({item.discount.offerPercentage.toFixed(1)}% OFF)

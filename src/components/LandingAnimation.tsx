@@ -20,7 +20,7 @@ const LandingAnimation = () => {
         <h1 className="text-8xl md:text-10xl lg:text-9xl font-playfair font-bold">
           <span className="text-foreground">The</span>
           <br />
-          <span className="text-accent">Label H</span>
+          <span className="text-foreground/60">Label H</span>
         </h1>
         <p className="mt-4 text-xl md:text-2xl text-foreground">Elegance Redefined</p>
       </div>

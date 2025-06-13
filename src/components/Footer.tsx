@@ -9,10 +9,7 @@ interface FooterProps {
 
 const Footer = ({ isDarkMode }: FooterProps) => {
   const socialLinks = [
-    { icon: Instagram, href: 'https://instagram.com/thelabelh', label: 'Instagram' },
-    { icon: Facebook, href: 'https://facebook.com/thelabelh', label: 'Facebook' },
-    { icon: Twitter, href: 'https://twitter.com/thelabelh', label: 'Twitter' },
-    { icon: Linkedin, href: 'https://linkedin.com/company/thelabelh', label: 'LinkedIn' },
+    { icon: Instagram, href: 'https://www.instagram.com/the__label__h/', label: 'Instagram' }
   ];
 
   return (
@@ -81,9 +78,10 @@ const Footer = ({ isDarkMode }: FooterProps) => {
           <p className="text-sm text-muted-foreground">
             &copy; {new Date().getFullYear()} The Label H. All rights reserved.
           </p>
-          <p className="text-sm text-muted-foreground mt-2 md:mt-0">
+          <a href='https://www.instagram.com/Patelhet_4705'><p className="text-sm text-muted-foreground mt-2 md:mt-0">
             Developed by <span className="text-accent font-medium">AmbeWeb</span>
           </p>
+          </a>
         </div>
       </div>
     </footer>
