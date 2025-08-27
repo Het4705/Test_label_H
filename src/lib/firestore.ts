@@ -371,6 +371,7 @@ export const createOrder = async (
   userId: string, 
   items: CartItem[], 
   shippingAddress: Address,
+  paymentId?: string,
   billingAddress?: Address
 ) => {
   try {
@@ -402,7 +403,8 @@ export const createOrder = async (
       shippingAddress,
       billingAddress:null,
       createdAt: Timestamp.now(),
-      updatedAt: Timestamp.now()
+      updatedAt: Timestamp.now(),
+      paymentId: paymentId?.toString()
     };
     
     const orderRef = await addDoc(collection(db, ORDERS), orderData);

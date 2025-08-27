@@ -1,42 +1,121 @@
-import { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import Navbar from '../components/Navbar';
-import { Button } from '@/components/ui/button';
-import { Trash2, Plus, Minus, ArrowRight } from 'lucide-react';
-import { Separator } from '@/components/ui/separator';
-import { useAuth } from '@/contexts/AuthContext';
-import { useAuthDialog } from '@/contexts/AuthDialogContext';
-import { useCart } from '@/hooks/use-cart';
-import { Address, CartItem } from '@/types';
-import { createOrder } from '@/lib/firestore';
-import AddressDialog from '@/components/AddressDialog';
-import Footer from '@/components/Footer';
-import { useToast } from '@/hooks/use-toast';
+import { useState, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import Navbar from "../components/Navbar";
+import { Button } from "@/components/ui/button";
+import { Trash2, Plus, Minus, ArrowRight } from "lucide-react";
+import { Separator } from "@/components/ui/separator";
+import { useAuth } from "@/contexts/AuthContext";
+import { useAuthDialog } from "@/contexts/AuthDialogContext";
+import { useCart } from "@/hooks/use-cart";
+import { Address, CartItem } from "@/types";
+import { createOrder } from "@/lib/firestore";
+import AddressDialog from "@/components/AddressDialog";
+import Footer from "@/components/Footer";
+import { useToast } from "@/hooks/use-toast";
+import { nanoid } from "nanoid";
 
 const Cart = () => {
   const [isDarkMode, setIsDarkMode] = useState(false);
   const { currentUser } = useAuth();
+  const currency = "INR";
   const { openLogin } = useAuthDialog();
-  const { cartItems, loading, updateQuantity, removeFromCart, clearCart } = useCart();
+  const { cartItems, loading, updateQuantity, removeFromCart, clearCart } =
+    useCart();
   const [isAddressDialogOpen, setIsAddressDialogOpen] = useState(false);
   const [selectedAddress, setSelectedAddress] = useState<Address | null>(null);
   const [isProcessingOrder, setIsProcessingOrder] = useState(false);
   const { toast } = useToast();
+
   const navigate = useNavigate();
+
+  function generateReceiptId() {
+    return `rcpt_${nanoid(12)}`;
+  }
+
+  const paymentHandler = async (amount: string, address: Address) => {
+    const response = await fetch(import.meta.env.VITE_PAYMENT_INTEGRATION+"/order", {
+      method: "POST",
+      body: JSON.stringify({
+        amount,
+        currency,
+        receipt: generateReceiptId(),
+      }),
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+    const order = await response.json();
+
+    var options = {
+      key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+      amount,
+      currency,
+      name: "The Label H",
+      description: "Buy the best!",
+      image: "https://res.cloudinary.com/dtdixmfnd/image/upload/v1749370321/logo_ugnpfz.jpg",
+      order_id: order.id,
+      handler: async function (response: any) {
+        // Payment successful, now place order
+        try {
+          await placeOrder(address, response?.razorpay_payment_id);
+        } catch (error: any) {
+          toast({
+            title: "Order Failed",
+            description: error.message || "There was an issue placing your order.",
+            variant: "destructive",
+          });
+        }
+      },
+      prefill: {
+        name: currentUser.displayName,
+        email: currentUser.email,
+        contact: address?.phoneNumber,
+      },
+      notes: {
+        address: "B-12 Rajeshwar Duplex, Near Sukhdham Residency Dabhoi Waghodia Ring Road,Vadodara,Gujarat India - 390025",
+      },
+      theme: {
+        color: "#3399cc",
+      },
+      modal: {
+        ondismiss: () => {
+          toast({
+            title: "Payment Cancelled",
+            description: "You cancelled the payment. Order not placed.",
+            variant: "destructive",
+          });
+        },
+      },
+    };
+    var rzp1 = new window.Razorpay(options);
+    rzp1.on("payment.failed", function (response: any) {
+      toast({
+        title: "Payment Failed",
+        description: response.error.description || "Payment was not successful.",
+        variant: "destructive",
+      });
+    });
+    rzp1.open();
+  };
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
-    document.documentElement.classList.toggle('dark');
+    document.documentElement.classList.toggle("dark");
   };
 
   // const calculateSubtotal = () => {
   //   return cartItems.reduce((total, item) => total + ((item.price - ((item.price/100)*item.discount.offerPercentage)) * item.quantity), 0).toFixed(1);
   // };
   const calculateSubtotal = () => {
-  const subtotal = cartItems.reduce((total, item) =>
-    total + ((item.price - ((item.price / 100) * item.discount.offerPercentage)) * item.quantity), 0);
-  return Math.round(subtotal * 10) / 10; // Keeps 1 decimal place, returns a number
-};
+    const subtotal = cartItems.reduce(
+      (total, item) =>
+        total +
+        (item.price - (item.price / 100) * item.discount.offerPercentage) *
+          item.quantity,
+      0
+    );
+    return Math.round(subtotal * 10) / 10; // Keeps 1 decimal place, returns a number
+  };
 
   const calculateShipping = () => {
     const subtotal = calculateSubtotal();
@@ -57,15 +136,17 @@ const Cart = () => {
 
   const handleSelectAddress = (address: Address) => {
     setSelectedAddress(address);
-    placeOrder(address);
+    paymentHandler((calculateTotal() * 100).toString(), address);
   };
 
-  const placeOrder = async (address: Address) => {
+  // Place order only after payment is successful
+  const placeOrder = async (address: Address, paymentId: string) => {
     if (!currentUser || cartItems.length === 0) return;
-    
+
     setIsProcessingOrder(true);
     try {
-      const orderRef = await createOrder(currentUser.uid, cartItems, address);
+      debugger
+      const orderRef = await createOrder(currentUser.uid, cartItems, address, paymentId);
       clearCart();
       toast({
         title: "Order Placed Successfully",
@@ -73,13 +154,13 @@ const Cart = () => {
       });
 
       // Prepare custom products object
-      const products = cartItems.map(item => ({
+      const products = cartItems.map((item) => ({
         name: item.name,
         image: item.image,
         size: item.size,
         price: item.price,
         quantity: item.quantity,
-        customization: item.customization
+        customization: item.customization,
       }));
 
       // Prepare order object (customize as needed)
@@ -92,13 +173,16 @@ const Cart = () => {
         date: new Date().toISOString(),
       };
 
-      const user ={
+      const user = {
         id: currentUser.uid,
         name: currentUser.displayName,
         email: currentUser.email,
-      }
+      };
       // Send email API call
-      const url = import.meta.env.VITE_EMAIL_SERVICE_PRODUCTION_URL+"/"+"send-order-confirmation";
+      const url =
+        import.meta.env.VITE_EMAIL_SERVICE_PRODUCTION_URL +
+        "/" +
+        "send-order-confirmation";
       fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -107,16 +191,16 @@ const Cart = () => {
           order,
           products,
         }),
-      }).catch(err => {
+      }).catch((err) => {
         // Optionally handle API error (do not block UI)
         console.error("Failed to send order confirmation email:", err);
       });
 
       setTimeout(() => {
-        navigate('/orders'); // Redirect to orders page after successful order
+        navigate("/orders"); // Redirect to orders page after successful order
       }, 2000);
     } catch (error: any) {
-      console.error('Error placing order:', error);
+      console.error("Error placing order:", error);
       toast({
         title: "Order Failed",
         description: error.message || "There was an issue placing your order.",
@@ -135,144 +219,216 @@ const Cart = () => {
           <h1 className="text-4xl md:text-5xl font-playfair font-bold mb-10 text-center">
             Your <span className="text-accent">Cart</span>
           </h1>
-          
-          { !loading ? !loading && cartItems.length === 0 ? (
-            <div className="text-center py-16">
-              <h2 className="text-2xl font-playfair mb-4">Your cart is empty</h2>
-              <p className="text-muted-foreground mb-8">
-                Looks like you haven't adde dany items to your cart yet.
-              </p>
-              <Link to="/products">
-                <Button>
-                  Continue Shopping
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              <div className="lg:col-span-2">
-                <div className="bg-card rounded-lg shadow-sm p-6">
-                  <h2 className="text-xl font-playfair font-semibold mb-6">Shopping Cart ({cartItems.length} items)</h2>
-                  <div className="space-y-6">
-                    {cartItems.map((item) => (
-                      <div key={item.id + (item.customization || "") + item.size} className="flex flex-col md:flex-row gap-4">
-                        <div className="w-full md:w-32 h-40 overflow-hidden rounded-md">
-                          <img 
-                            src={item.image} 
-                            alt={item.name} 
-                            className="w-full h-full object-cover"
-                          />
-                        </div>
-                        <div className="flex-grow flex flex-col justify-between">
-                          <div>
-                            <h3 className="font-playfair text-lg font-semibold">{item.name}  [ <span className="font-semibold text-accent">{item.size}</span> ] </h3>
-                            {item.discount && item.discount.offerPercentage ? (
-                              <div className="flex items-center gap-2 mt-1">
-                                <span className="text-muted-foreground line-through text-sm">
-                                  ₹{item.price}
-                                </span>
-                                <span className="text-accent font-bold text-base">
-                                  ₹{(item.price - ((item.price/100)*item.discount.offerPercentage)).toFixed(1)}
-                                </span>
-                                <span className="text-xs text-destructive font-semibold">
-                                  ({item.discount.offerPercentage.toFixed(1)}% OFF)
-                                </span>
-                              </div>
-                            ) : (
-                              <p className="text-accent font-bold">₹{item.price}</p>
-                            )}
-                            {item.customization && (
-                              <p className="text-xs text-muted-foreground mt-1">
-                                <span className="font-semibold">Customization:</span> {item.customization}
-                              </p>
-                            )}
+
+          {!loading ? (
+            !loading && cartItems.length === 0 ? (
+              <div className="text-center py-16">
+                <h2 className="text-2xl font-playfair mb-4">
+                  Your cart is empty
+                </h2>
+                <p className="text-muted-foreground mb-8">
+                  Looks like you haven't adde dany items to your cart yet.
+                </p>
+                <Link to="/products">
+                  <Button>Continue Shopping</Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                  <div className="bg-card rounded-lg shadow-sm p-6">
+                    <h2 className="text-xl font-playfair font-semibold mb-6">
+                      Shopping Cart ({cartItems.length} items)
+                    </h2>
+                    <div className="space-y-6">
+                      {cartItems.map((item) => (
+                        <div
+                          key={item.id + (item.customization || "") + item.size}
+                          className="flex flex-col md:flex-row gap-4"
+                        >
+                          <div className="w-full md:w-32 h-40 overflow-hidden rounded-md">
+                            <img
+                              src={item.image}
+                              alt={item.name}
+                              className="w-full h-full object-cover"
+                            />
                           </div>
-                          <div className="flex justify-between items-center mt-4">
-                            <div className="flex items-center border border-border rounded-md overflow-hidden">
-                              <button 
-                                className="px-3 py-1 hover:bg-muted transition-colors"
-                                onClick={() => updateQuantity(item.id, item.quantity - 1, item.size)}
-                                aria-label="Decrease quantity"
+                          <div className="flex-grow flex flex-col justify-between">
+                            <div>
+                              <h3 className="font-playfair text-lg font-semibold">
+                                {item.name} [{" "}
+                                <span className="font-semibold text-accent">
+                                  {item.size}
+                                </span>{" "}
+                                ]{" "}
+                              </h3>
+                              {item.discount &&
+                              item.discount.offerPercentage ? (
+                                <div className="flex items-center gap-2 mt-1">
+                                  <span className="text-muted-foreground line-through text-sm">
+                                    ₹{item.price}
+                                  </span>
+                                  <span className="text-accent font-bold text-base">
+                                    ₹
+                                    {(
+                                      item.price -
+                                      (item.price / 100) *
+                                        item.discount.offerPercentage
+                                    ).toFixed(1)}
+                                  </span>
+                                  <span className="text-xs text-destructive font-semibold">
+                                    ({item.discount.offerPercentage.toFixed(1)}%
+                                    OFF)
+                                  </span>
+                                </div>
+                              ) : (
+                                <p className="text-accent font-bold">
+                                  ₹{item.price}
+                                </p>
+                              )}
+                              {item.customization && (
+                                <p className="text-xs text-muted-foreground mt-1">
+                                  <span className="font-semibold">
+                                    Customization:
+                                  </span>{" "}
+                                  {item.customization}
+                                </p>
+                              )}
+                            </div>
+                            <div className="flex justify-between items-center mt-4">
+                              <div className="flex items-center border border-border rounded-md overflow-hidden">
+                                <button
+                                  className="px-3 py-1 hover:bg-muted transition-colors"
+                                  onClick={() =>
+                                    updateQuantity(
+                                      item.id,
+                                      item.quantity - 1,
+                                      item.size
+                                    )
+                                  }
+                                  aria-label="Decrease quantity"
+                                >
+                                  <Minus className="h-4 w-4" />
+                                </button>
+                                <span className="px-4 py-1">
+                                  {item.quantity}
+                                </span>
+                                <button
+                                  className="px-3 py-1 hover:bg-muted transition-colors"
+                                  onClick={() =>
+                                    updateQuantity(
+                                      item.id,
+                                      item.quantity + 1,
+                                      item.size
+                                    )
+                                  }
+                                  aria-label="Increase quantity"
+                                >
+                                  <Plus className="h-4 w-4" />
+                                </button>
+                              </div>
+                              <button
+                                className="text-muted-foreground hover:text-destructive transition-colors"
+                                onClick={() =>
+                                  removeFromCart(item.id, item.size)
+                                }
+                                aria-label="Remove item"
                               >
-                                <Minus className="h-4 w-4" />
-                              </button>
-                              <span className="px-4 py-1">{item.quantity}</span>
-                              <button 
-                                className="px-3 py-1 hover:bg-muted transition-colors"
-                                onClick={() => updateQuantity(item.id, item.quantity + 1, item.size)}
-                                aria-label="Increase quantity"
-                              >
-                                <Plus className="h-4 w-4" />
+                                <Trash2 className="h-5 w-5" />
                               </button>
                             </div>
-                            <button 
-                              className="text-muted-foreground hover:text-destructive transition-colors"
-                              onClick={() => removeFromCart(item.id,item.size)}
-                              aria-label="Remove item"
-                            >
-                              <Trash2 className="h-5 w-5" />
-                            </button>
                           </div>
                         </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="lg:col-span-1">
+                  <div className="bg-card rounded-lg shadow-sm p-6 sticky top-24">
+                    <h2 className="text-xl font-playfair font-semibold mb-6">
+                      Order Summary
+                    </h2>
+                    <div className="space-y-4">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Subtotal</span>
+                        <span>₹{calculateSubtotal()}</span>
                       </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-              
-              <div className="lg:col-span-1">
-                <div className="bg-card rounded-lg shadow-sm p-6 sticky top-24">
-                  <h2 className="text-xl font-playfair font-semibold mb-6">Order Summary</h2>
-                  <div className="space-y-4">
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Subtotal</span>
-                      <span>₹{calculateSubtotal()}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">Shipping</span>
-                      <span>{calculateShipping() === 0 ? 'Free' : `₹${calculateShipping()}`}</span>
-                    </div>
-                    <Separator />
-                    <div className="flex justify-between font-bold">
-                      <span>Total</span>
-                      <span>₹{calculateTotal()}</span>
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Taxes calculated at checkout
-                    </p>
-                    <Button 
-                      className="w-full mt-4"
-                      onClick={handleCheckout}
-                      disabled={isProcessingOrder || loading}
-                    >
-                      {!currentUser 
-                        ? "Sign in to Checkout" 
-                        : isProcessingOrder 
-                          ? "Processing..." 
-                          : "Checkout"
-                      } 
-                      {!isProcessingOrder && <ArrowRight className="ml-2 h-4 w-4" />}
-                    </Button>
-                    <div className="text-center mt-4">
-                      <Link to="/products" className="text-sm text-accent hover:underline">
-                        Continue Shopping
-                      </Link>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Shipping</span>
+                        <span>
+                          {calculateShipping() === 0
+                            ? "Free"
+                            : `₹${calculateShipping()}`}
+                        </span>
+                      </div>
+                      <Separator />
+                      <div className="flex justify-between font-bold">
+                        <span>Total</span>
+                        <span>₹{calculateTotal()}</span>
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        Taxes calculated at checkout
+                      </p>
+                      <Button
+                        className="w-full mt-4"
+                        onClick={handleCheckout}
+                        disabled={isProcessingOrder || loading}
+                      >
+                        {!currentUser
+                          ? "Sign in to Checkout"
+                          : isProcessingOrder
+                          ? "Processing..."
+                          : "Checkout"}
+                        {!isProcessingOrder && (
+                          <ArrowRight className="ml-2 h-4 w-4" />
+                        )}
+                      </Button>
+                      <div className="text-center mt-4">
+                        <Link
+                          to="/products"
+                          className="text-sm text-accent hover:underline"
+                        >
+                          Continue Shopping
+                        </Link>
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
+            )
+          ) : (
+            <div className="flex flex-col justify-center items-center">
+              <img
+                className="w-20"
+                src="https://res.cloudinary.com/dutpxuzpt/image/upload/v1744821089/Spinner_1x-1.1s-200px-200px_topqq2.gif"
+                alt="Your cart is loading"
+              />
+              <p className="opacity-[0.5]">Your cart is loading</p>
             </div>
-          ) : <div className='flex flex-col justify-center items-center'><img className='w-20' src="https://res.cloudinary.com/dutpxuzpt/image/upload/v1744821089/Spinner_1x-1.1s-200px-200px_topqq2.gif" alt="Your cart is loading" /><p className='opacity-[0.5]'>Your cart is loading</p></div>}
+          )}
         </div>
       </main>
+      {isProcessingOrder && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white rounded-lg p-6 flex flex-col items-center shadow-lg">
+            <img
+              className="w-16 mb-4"
+              src="https://res.cloudinary.com/dutpxuzpt/image/upload/v1744821089/Spinner_1x-1.1s-200px-200px_topqq2.gif"
+              alt="Processing your order"
+            />
+            <p className="text-lg font-semibold text-accent">Placing your order...</p>
+          </div>
+        </div>
+      )}
       <Footer isDarkMode={isDarkMode} />
-      <AddressDialog 
+      <AddressDialog
         isOpen={isAddressDialogOpen}
         onClose={() => setIsAddressDialogOpen(false)}
         onSelectAddress={handleSelectAddress}
       />
     </div>
   );
-}
+};
 
 export default Cart;

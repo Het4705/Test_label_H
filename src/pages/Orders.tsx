@@ -25,6 +25,15 @@ const Orders = () => {
     enabled: !!currentUser,
   });
 
+  // Sort orders so latest is first
+  const sortedOrders = [...orders].sort((a, b) => {
+    const aDate = a.createdAt?.toDate?.() ?? new Date(a.createdAt?.seconds * 1000);
+    const bDate = b.createdAt?.toDate?.() ?? new Date(b.createdAt?.seconds * 1000);
+    return bDate - aDate; // descending: latest first
+  });
+  const latestOrder = sortedOrders[0];
+  const previousOrders = sortedOrders.slice(1);
+
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
     document.documentElement.classList.toggle("dark");
@@ -90,120 +99,250 @@ const Orders = () => {
             </div>
           ) : (
             <div className="space-y-8">
-              {orders.map((order, index) => (
-                <div
-                  key={order.id}
-                  className="bg-card rounded-lg shadow-sm overflow-hidden"
-                >
-                  <div className="p-6">
-                    <div className="flex flex-wrap justify-between items-center mb-4">
-                      <div>
-                        <h2 className="text-xl flex  justify-start gap-2 items-center  font-playfair font-semibold">
-                          Order <p className="text-2xl">{index + 1}</p>
-                        </h2>
-                        <p className="text-muted-foreground">
-                          {formatDate(
-                            order.createdAt?.toDate?.() ??
-                              new Date(order.createdAt?.seconds * 1000)
-                          )}
-                        </p>
-                      </div>
-                      <div className="flex items-center space-x-4 mt-2 sm:mt-0">
-                        <span
-                          className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
-                            order.status
-                          )}`}
-                        >
-                          {order.status}
-                        </span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
+              {/* Latest Order */}
+              <div
+                key={latestOrder.id}
+                className="bg-card rounded-lg shadow-sm overflow-hidden"
+              >
+                <div className="p-6">
+                  <div className="flex flex-wrap justify-between items-center mb-4">
+                    <div>
+                      <h2 className="text-xl flex  justify-start gap-2 items-center  font-playfair font-semibold">
+                        Latest Order
+                      </h2>
                       <p className="text-muted-foreground">
-                        <span className="font-medium text-foreground">
-                          {order.items.length}
-                        </span>{" "}
-                        {order.items.length === 1 ? "item" : "items"}
+                        {formatDate(
+                          latestOrder.createdAt?.toDate?.() ??
+                            new Date(latestOrder.createdAt?.seconds * 1000)
+                        )}
                       </p>
-                      <p className="font-bold">₹{order.total.toFixed(1)}</p>
                     </div>
+                    <div className="flex items-center space-x-4 mt-2 sm:mt-0">
+                      <span
+                        className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                          latestOrder.status
+                        )}`}
+                      >
+                        {latestOrder.status}
+                      </span>
+                    </div>
+                  </div>
 
-                    <Accordion type="single" collapsible className="mt-4">
-                      <AccordionItem value="details">
-                        <AccordionTrigger>Order Details</AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-6">
-                            <div>
-                              <h3 className="font-semibold mb-2">Order ID</h3>
-                              <p className="text-sm text-muted-foreground">
-                                {order.id}
-                              </p>
-                              <h3 className="font-semibold mb-2">Items</h3>
-                              <div className="space-y-4">
-                                {order.items.map((item) => (
-                                  <div
-                                    key={item.productId}
-                                    className="flex items-center space-x-4"
-                                  >
-                                    <div className="flex-grow">
-                                      <p className="font-medium">{item.name}</p>
-                                      <p className="text-sm text-muted-foreground">
-                                        Qty: {item.quantity}
-                                      </p>
-                                      <p className="text-sm text-muted-foreground">
-                                        Size: {item.size}
-                                      </p>
-                                    </div>
-                                    <p className="font-semibold">
-                                      ₹{item.price.toFixed(1)}
+                  <div className="flex items-center justify-between">
+                    <p className="text-muted-foreground">
+                      <span className="font-medium text-foreground">
+                        {latestOrder.items.length}
+                      </span>{" "}
+                      {latestOrder.items.length === 1 ? "item" : "items"}
+                    </p>
+                    <p className="font-bold">₹{latestOrder.total.toFixed(1)}</p>
+                  </div>
+
+                  <Accordion type="single" collapsible className="mt-4" defaultValue="details">
+                    <AccordionItem value="details">
+                      <AccordionTrigger>Order Details</AccordionTrigger>
+                      <AccordionContent>
+                        {/* ...same as before, but use latestOrder instead of order... */}
+                        <div className="space-y-6">
+                          <div>
+                            <h3 className="font-semibold mb-2">Order ID</h3>
+                            <p className="text-sm text-muted-foreground">
+                              {latestOrder.id}
+                            </p>
+                            <h3 className="font-semibold mb-2">Items</h3>
+                            <div className="space-y-4">
+                              {latestOrder.items.map((item) => (
+                                <div
+                                  key={item.productId}
+                                  className="flex items-center space-x-4"
+                                >
+                                  <div className="flex-grow">
+                                    <p className="font-medium">{item.name}</p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Qty: {item.quantity}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Size: {item.size}
                                     </p>
                                   </div>
-                                ))}
-                              </div>
-                            </div>
-
-                            <Separator />
-
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                              <div>
-                                <h3 className="font-semibold mb-2">
-                                  Shipping Address
-                                </h3>
-                                <div className="text-sm text-muted-foreground">
-                                  <p>{order.shippingAddress.name}</p>
-                                  <p>{order.shippingAddress.addressLine1}</p>
-                                  {order.shippingAddress.addressLine2 && (
-                                    <p>{order.shippingAddress.addressLine2}</p>
-                                  )}
-                                  <p>
-                                    {order.shippingAddress.city},{" "}
-                                    {order.shippingAddress.state}{" "}
-                                    {order.shippingAddress.postalCode}
+                                  <p className="font-semibold">
+                                    ₹{item.price.toFixed(1)}
                                   </p>
-                                  <p>{order.shippingAddress.country}</p>
                                 </div>
-                              </div>
-
-                              {order.trackingNumber && (
-                                <div>
-                                  <h3 className="font-semibold mb-2">
-                                    Tracking Information
-                                  </h3>
-                                  <div className="flex items-center space-x-2 text-sm">
-                                    <Package className="h-4 w-4 text-accent" />
-                                    <p>{order.trackingNumber}</p>
-                                  </div>
-                                </div>
-                              )}
+                              ))}
                             </div>
                           </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    </Accordion>
-                  </div>
+
+                          <Separator />
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                              <h3 className="font-semibold mb-2">
+                                Shipping Address
+                              </h3>
+                              <div className="text-sm text-muted-foreground">
+                                <p>{latestOrder.shippingAddress.name}</p>
+                                <p>{latestOrder.shippingAddress.addressLine1}</p>
+                                {latestOrder.shippingAddress.addressLine2 && (
+                                  <p>{latestOrder.shippingAddress.addressLine2}</p>
+                                )}
+                                <p>
+                                  {latestOrder.shippingAddress.city},{" "}
+                                  {latestOrder.shippingAddress.state}{" "}
+                                  {latestOrder.shippingAddress.postalCode}
+                                </p>
+                                <p>{latestOrder.shippingAddress.country}</p>
+                              </div>
+                            </div>
+
+                            {latestOrder.trackingNumber && (
+                              <div>
+                                <h3 className="font-semibold mb-2">
+                                  Tracking Information
+                                </h3>
+                                <div className="flex items-center space-x-2 text-sm">
+                                  <Package className="h-4 w-4 text-accent" />
+                                  <p>{latestOrder.trackingNumber}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </AccordionContent>
+                    </AccordionItem>
+                  </Accordion>
                 </div>
-              ))}
+              </div>
+
+              {/* Previous Orders Dropdown */}
+              {previousOrders.length > 0 && (
+                <Accordion type="single" collapsible>
+                  <AccordionItem value="previous">
+                    <AccordionTrigger>
+                      <span className="text-lg font-semibold">See Previous Orders</span>
+                    </AccordionTrigger>
+                    <AccordionContent>
+                      <div className="space-y-8">
+                        {previousOrders.map((order, index) => (
+                          <div
+                            key={order.id}
+                            className="bg-card rounded-lg shadow-sm overflow-hidden"
+                          >
+                            <div className="p-6">
+                              <div className="flex flex-wrap justify-between items-center mb-4">
+                                <div>
+                                  <h2 className="text-xl flex  justify-start gap-2 items-center  font-playfair font-semibold">
+                                    Order <p className="text-2xl">{previousOrders.length - index}</p>
+                                  </h2>
+                                  <p className="text-muted-foreground">
+                                    {formatDate(
+                                      order.createdAt?.toDate?.() ??
+                                        new Date(order.createdAt?.seconds * 1000)
+                                    )}
+                                  </p>
+                                </div>
+                                <div className="flex items-center space-x-4 mt-2 sm:mt-0">
+                                  <span
+                                    className={`px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(
+                                      order.status
+                                    )}`}
+                                  >
+                                    {order.status}
+                                  </span>
+                                </div>
+                              </div>
+
+                              <div className="flex items-center justify-between">
+                                <p className="text-muted-foreground">
+                                  <span className="font-medium text-foreground">
+                                    {order.items.length}
+                                  </span>{" "}
+                                  {order.items.length === 1 ? "item" : "items"}
+                                </p>
+                                <p className="font-bold">₹{order.total.toFixed(1)}</p>
+                              </div>
+
+                              <Accordion type="single" collapsible className="mt-4">
+                                <AccordionItem value="details">
+                                  <AccordionTrigger>Order Details</AccordionTrigger>
+                                  <AccordionContent>
+                                    {/* ...same order details as above, but use order... */}
+                                    <div className="space-y-6">
+                                      <div>
+                                        <h3 className="font-semibold mb-2">Order ID</h3>
+                                        <p className="text-sm text-muted-foreground">
+                                          {order.id}
+                                        </p>
+                                        <h3 className="font-semibold mb-2">Items</h3>
+                                        <div className="space-y-4">
+                                          {order.items.map((item) => (
+                                            <div
+                                              key={item.productId}
+                                              className="flex items-center space-x-4"
+                                            >
+                                              <div className="flex-grow">
+                                                <p className="font-medium">{item.name}</p>
+                                                <p className="text-sm text-muted-foreground">
+                                                  Qty: {item.quantity}
+                                                </p>
+                                                <p className="text-sm text-muted-foreground">
+                                                  Size: {item.size}
+                                                </p>
+                                              </div>
+                                              <p className="font-semibold">
+                                                ₹{item.price.toFixed(1)}
+                                              </p>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+
+                                      <Separator />
+
+                                      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <div>
+                                          <h3 className="font-semibold mb-2">
+                                            Shipping Address
+                                          </h3>
+                                          <div className="text-sm text-muted-foreground">
+                                            <p>{order.shippingAddress.name}</p>
+                                            <p>{order.shippingAddress.addressLine1}</p>
+                                            {order.shippingAddress.addressLine2 && (
+                                              <p>{order.shippingAddress.addressLine2}</p>
+                                            )}
+                                            <p>
+                                              {order.shippingAddress.city},{" "}
+                                              {order.shippingAddress.state}{" "}
+                                              {order.shippingAddress.postalCode}
+                                            </p>
+                                            <p>{order.shippingAddress.country}</p>
+                                          </div>
+                                        </div>
+
+                                        {order.trackingNumber && (
+                                          <div>
+                                            <h3 className="font-semibold mb-2">
+                                              Tracking Information
+                                            </h3>
+                                            <div className="flex items-center space-x-2 text-sm">
+                                              <Package className="h-4 w-4 text-accent" />
+                                              <p>{order.trackingNumber}</p>
+                                            </div>
+                                          </div>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </AccordionContent>
+                                </AccordionItem>
+                              </Accordion>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </AccordionContent>
+                  </AccordionItem>
+                </Accordion>
+              )}
             </div>
           )}
         </div>

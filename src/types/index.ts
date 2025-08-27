@@ -85,6 +85,7 @@ export type Order = {
   createdAt: Timestamp;
   updatedAt: Timestamp;
   trackingNumber?: string;
+  paymentId?: string;
   customization?: string; // Custom size/details
 };
 
