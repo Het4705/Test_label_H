@@ -123,7 +123,8 @@ const Cart = () => {
   };
 
   const calculateTotal = () => {
-    return calculateSubtotal() + calculateShipping();
+    // return calculateSubtotal() + calculateShipping();
+    return calculateSubtotal();
   };
 
   const handleCheckout = () => {
@@ -354,14 +355,14 @@ const Cart = () => {
                         <span className="text-muted-foreground">Subtotal</span>
                         <span>₹{calculateSubtotal()}</span>
                       </div>
-                      <div className="flex justify-between">
+                      {/* <div className="flex justify-between">
                         <span className="text-muted-foreground">Shipping</span>
                         <span>
                           {calculateShipping() === 0
                             ? "Free"
                             : `₹${calculateShipping()}`}
                         </span>
-                      </div>
+                      </div> */}
                       <Separator />
                       <div className="flex justify-between font-bold">
                         <span>Total</span>
