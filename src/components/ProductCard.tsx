@@ -48,7 +48,7 @@ const ProductCard = ({ product, featured = false }: ProductCardProps) => {
     }
   
     if (today < validUntil) {
-      const discounted = product.price - (product.discount.offerPercentage / 100) * product.price;
+      const discounted = product.price - (product.discount?.offerPercentage / 100) * product.price;
       setDiscountedPrice(discounted);
     } else {
       setDiscountedPrice(null);

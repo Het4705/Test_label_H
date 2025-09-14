@@ -53,8 +53,8 @@ const UserAvatar = () => {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Avatar className="h-9 w-9 cursor-pointer border-2 border-accent">
-          <AvatarFallback className="bg-accent text-white">
+        <Avatar className="h-9 w-9 cursor-pointer border-[3px] border-accent ">
+          <AvatarFallback className="bg-foreground/90 text-white">
             {getUserInitials()}
           </AvatarFallback>
         </Avatar>

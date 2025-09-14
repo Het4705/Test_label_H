@@ -33,7 +33,7 @@ const Navbar = ({ toggleTheme, isDarkMode }: { toggleTheme: () => void; isDarkMo
               {isMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </Button>
             <Link to="/" className="flex items-center">
-              <span className="font-playfair text-lg font-bold text-accent sm:text-2xl">The Label H</span>
+              <span className="font-playfair text-lg font-bold text-foreground/80 sm:text-2xl">The Label H</span>
             </Link>
           </div>
 
@@ -44,8 +44,8 @@ const Navbar = ({ toggleTheme, isDarkMode }: { toggleTheme: () => void; isDarkMo
           <div className="flex items-center  ml-2  sm:mr-0 sm:scale-100  ">
 
             <Link to="/favorites">
-              <Button variant="ghost" size="icon" aria-label="Favorites">
-                <Heart />
+              <Button variant="ghost"  size="icon" aria-label="Favorites" className='hover:bg-red-400'>
+                <Heart  />
               </Button>
             </Link>
             <div className="relative flex flex-col items-center">

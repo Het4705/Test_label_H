@@ -48,20 +48,25 @@ const Products = () => {
     }
   }, [searchParams, setPriceRange, toggleCategory, setSelectedCollections]);
 
-  // Filter products by selectedCollections
-  const visibleProducts =
-    selectedCollections.length > 0
-      ? products.filter((p) => selectedCollections.includes(p.collection))
-      : products;
-
-  // If you want to filter by price only if priceRange is not default:
-  const priceFilteredProducts = visibleProducts.filter((p) => {
-    const min = priceRange[0];
-    const max = priceRange[1];
-    // Only filter if max is not the default (e.g., 20000)
-    if (min === 0 && (max === 20000 || max === Infinity)) return true;
-    return p.price >= min && p.price <= max;
-  });
+  // Filter products based on all selected filters
+  const filtered = products
+    .filter(p =>
+      selectedCollections.length > 0 ? selectedCollections.includes(p.collectionId) : true
+    )
+    .filter(p =>
+      selectedCategories.length > 0 ? selectedCategories.includes(p.category) : true
+    )
+    .filter(p =>
+      selectedMaterials.length > 0 ? selectedMaterials.includes(p.material) : true
+    )
+    .filter(p =>
+      showDiscounted ? !!p.discount : true
+    )
+    .filter(p => {
+      const min = priceRange[0];
+      const max = priceRange[1];
+      return p.price >= min && p.price <= max;
+    });
 
   const toggleTheme = () => {
     setIsDarkMode(!isDarkMode);
@@ -136,13 +141,7 @@ const Products = () => {
                       Filters are applied
                     </div>
                   )}
-                  <ProductGrid
-                    products={
-                      filteredProducts.length > 0
-                        ? filteredProducts
-                        : visibleProducts
-                    }
-                  />
+                  <ProductGrid products={filtered} />
                 </>
               )}
             </div>
